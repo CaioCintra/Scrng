@@ -1,0 +1,62 @@
+"use client";
+
+import { addPlayer } from "@/app/service/rooms";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { IoMdAdd } from "react-icons/io";
+
+export default function PlayerAdd({ roomId }: { roomId: undefined | string }) {
+  const router = useRouter();
+  const [name, setName] = useState("");
+  const [adding, setAdding] = useState(false);
+
+  return (
+    <>
+      <button
+        onClick={async () => {
+          setAdding(true);
+        }}
+        className="mt-4 px-4 w-16 h-16 fixed bottom-10 right-10 py-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition text-2xl hover:text-4xl items-center justify-center flex hover:-translate-y-1 hover:scale-110"
+      >
+        <IoMdAdd />
+      </button>
+      {adding && (
+        <div>
+          <div className="fixed bottom-5 right-5 text-black bg-opacity-50 flex items-center justify-center z-50 transition">
+            <div className="bg-white p-6 rounded-lg shadow-lg w-80">
+              <h2 className="text-2xl font-semibold mb-4">Adicionar Jogador</h2>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded mb-4"
+                placeholder="Nome do jogador"
+              />
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setAdding(false)}
+                  className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 transition"
+                >
+                  {" "}
+                  Cancelar
+                </button>
+                <button
+                  onClick={async () => {
+                    if (name.trim() === "") return;
+                    await addPlayer(roomId, name.trim());
+                    setAdding(false);
+                    router.refresh();
+                  }}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition"
+                >
+                  {" "}
+                  Adicionar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}

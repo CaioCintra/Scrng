@@ -3,10 +3,17 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getRoom } from "../../service/rooms";
+import { addPoints, addRoomPoints } from "../../service/players";
 import { useGlobal } from "@/context/GlobalContext";
+import { IoMdAdd, IoMdRemove } from "react-icons/io";
+import PlayerAdd from "@/components/PlayerAdd";
 
 type Player = { id: string; name: string; points: number };
-type RoomType = { id?: string; name?: string; description?: string; players?: Player[] } | null;
+type RoomType = {
+  id?: string;
+  name?: string;
+  players?: Player[];
+} | null;
 
 export default function RoomPage() {
   const params = useParams();
@@ -14,6 +21,8 @@ export default function RoomPage() {
   const { user } = useGlobal();
   const [room, setRoom] = useState<RoomType>(null);
   const [loading, setLoading] = useState(false);
+  const [points, setpoints] = useState(10);
+  const [roomPoints, setRoomPoints] = useState(10);
   const [error, setError] = useState<string | null>(null);
 
   const id = params?.id as string | undefined;
@@ -44,75 +53,191 @@ export default function RoomPage() {
         setLoading(false);
       }
     };
-
     load();
   }, [id, user, router]);
 
   return (
-    <div className="min-h-screen p-8 flex items-center justify-center text-black">
-      <div className="w-full max-w-3xl p-6 bg-white rounded-xl shadow">
-        {loading ? (
-          <p>Carregando sala...</p>
-        ) : error ? (
-          <div>
-            <p className="text-red-600">Erro: {error}</p>
-            <button
-              onClick={() => router.back()}
-              className="mt-3 px-3 py-2 rounded bg-slate-200"
-            >
-              Voltar
-            </button>
-          </div>
-        ) : room ? (
-          <div>
-            <h1 className="text-4xl font-bold mb-2 text-center">{room?.name ?? "Sala"}</h1>
-
-            {/* Players list */}
-            <section className="mt-6">
-              <h2 className="text-xl font-semibold mb-3">Jogadores</h2>
-
-              <div className="grid gap-3">
-                {((room?.players ?? []) as Player[]).length === 0 ? (
-                  <p className="text-sm text-neutral-500">Nenhum jogador na sala.</p>
-                ) : (
-                  (room?.players ?? []).map((p: Player) => {
-                    const initials = (p.name || "").split(" ").map(s => s[0]).filter(Boolean).slice(0,2).join("").toUpperCase();
-                    return (
-                      <div key={p.id} className="flex items-center gap-4 p-3 rounded-lg border bg-white">
-                        <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-xl font-semibold text-gray-700">
-                          {initials}
-                        </div>
-
-                        <div className="flex-1">
-                          <div className="text-lg font-medium text-gray-800">{p.name}</div>
-                          <div className="text-sm text-gray-500">{p.points} pontos</div>
-                        </div>
-
-                        <div className="px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xl font-semibold">{p.points}</div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </section>
-
-            <div className="flex gap-3 mt-6">
-              <button className="px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700">Entrar</button>
-              <button onClick={() => router.back()} className="px-4 py-2 rounded bg-neutral-600 text-white hover:bg-neutral-700">Voltar</button>
+    <>
+      <div className="min-h-screen p-8 flex items-center justify-center text-black">
+        <div className="w-full max-w-3xl p-6 bg-white rounded-xl shadow">
+          {loading ? (
+            <p>Carregando sala...</p>
+          ) : error ? (
+            <div>
+              <p className="text-red-600">Erro: {error}</p>
+              <button
+                onClick={() => router.back()}
+                className="mt-3 px-3 py-2 rounded bg-slate-200"
+              >
+                Voltar
+              </button>
             </div>
-          </div>
-        ) : (
-          <div>
-            <p>Nenhuma sala encontrada.</p>
-            <button
-              onClick={() => router.back()}
-              className="mt-3 px-3 py-2 rounded bg-slate-200"
-            >
-              Voltar
-            </button>
-          </div>
-        )}
+          ) : room ? (
+            <div>
+              <h1 className="text-4xl font-bold mb-2 text-center">
+                {room?.name ?? "Sala"}
+              </h1>
+              <div className="mt-6 flex items-center justify-center gap-3">
+                <p className="font-bold">Pontuação Geral</p>
+                <button
+                  onClick={async () => {
+                    await addRoomPoints(id, roomPoints);
+                    // Refresh room data
+                    const res = await getRoom(id!);
+                    setRoom((res as RoomType) ?? null);
+                  }}
+                  className="px-3 py-1 h-12 w-12 rounded-full bg-green-400 text-green-950 hover:bg-green-600 transition flex items-center justify-center"
+                >
+                  <IoMdAdd />
+                </button>
+                <input
+                  type="number"
+                  min={0}
+                  max={9999}
+                  className="
+                            w-32 px-3 py-1 rounded-full text-center font-bold bg-gray-100
+                            hover:shadow
+                            focus:outline-none focus:ring-0 focus:bg-gray-200
+                            [&::-webkit-inner-spin-button]:appearance-none
+                            [&::-webkit-outer-spin-button]:appearance-none
+                            appearance-none
+                          "
+                  value={points}
+                  onChange={(e) => {
+                    let value = Number(e.target.value);
+
+                    if (isNaN(value)) value = 0;
+                    if (value < 0) value = 0;
+                    if (value > 9999) value = 9999;
+
+                    setRoomPoints(value);
+                  }}
+                />
+                <button
+                  onClick={async () => {
+                    await addRoomPoints(id, -roomPoints);
+                    // Refresh room data
+                    const res = await getRoom(id!);
+                    setRoom((res as RoomType) ?? null);
+                  }}
+                  className="px-3 py-1 h-12 w-12 rounded-full bg-red-400 text-red-950 hover:bg-red-600 transition flex items-center justify-center"
+                >
+                  <IoMdRemove />
+                </button>
+              </div>
+              {/* Players list */}
+              <section className="mt-6">
+                <h2 className="text-xl font-semibold mb-3">Jogadores</h2>
+
+                <div className="grid gap-3">
+                  {((room?.players ?? []) as Player[]).length === 0 ? (
+                    <p className="text-sm text-neutral-500">
+                      Nenhum jogador na sala.
+                    </p>
+                  ) : (
+                    (room?.players ?? []).map((p: Player) => {
+                      const initials = (p.name || "")
+                        .split(" ")
+                        .map((s) => s[0])
+                        .filter(Boolean)
+                        .slice(0, 2)
+                        .join("")
+                        .toUpperCase();
+                      return (
+                        <div
+                          key={p.id}
+                          className="flex items-center gap-4 p-3 rounded-lg border bg-white"
+                        >
+                          <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-xl font-semibold text-gray-700">
+                            {initials}
+                          </div>
+
+                          <div className="flex-1">
+                            <div className="text-lg font-medium text-gray-800">
+                              {p.name}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {p.points} pontos
+                            </div>
+                          </div>
+                          <button
+                            onClick={async () => {
+                              await addPoints(id, p.id, points);
+                              // Refresh room data
+                              const res = await getRoom(id!);
+                              setRoom((res as RoomType) ?? null);
+                            }}
+                            className="px-3 py-1 h-12 w-12 rounded-full bg-green-400 text-green-950 hover:bg-green-600 transition flex items-center justify-center"
+                          >
+                            <IoMdAdd />
+                          </button>
+                          <input
+                            type="number"
+                            min={0}
+                            max={9999}
+                            className="
+                            w-32 px-3 py-1 rounded-full text-center font-bold bg-gray-100
+                            hover:shadow
+                            focus:outline-none focus:ring-0 focus:bg-gray-200
+                            [&::-webkit-inner-spin-button]:appearance-none
+                            [&::-webkit-outer-spin-button]:appearance-none
+                            appearance-none
+                          "
+                            value={points}
+                            onChange={(e) => {
+                              let value = Number(e.target.value);
+
+                              if (isNaN(value)) value = 0;
+                              if (value < 0) value = 0;
+                              if (value > 9999) value = 9999;
+
+                              setpoints(value);
+                            }}
+                          />
+                          <button
+                            onClick={async () => {
+                              await addPoints(id, p.id, -points);
+                              // Refresh room data
+                              const res = await getRoom(id!);
+                              setRoom((res as RoomType) ?? null);
+                            }}
+                            className="px-3 py-1 h-12 w-12 rounded-full bg-red-400 text-red-950 hover:bg-red-600 transition flex items-center justify-center"
+                          >
+                            <IoMdRemove />
+                          </button>
+                          <div className="px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xl font-semibold">
+                            {p.points}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </section>
+
+              <div className="flex gap-3 mt-6  items-center justify-center">
+                <button
+                  onClick={() => router.back()}
+                  className="px-4 py-2 rounded w-full bg-indigo-600 text-white hover:bg-indigo-700 transition"
+                >
+                  Voltar
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <p>Nenhuma sala encontrada.</p>
+              <button
+                onClick={() => router.back()}
+                className="mt-3 px-3 py-2 rounded bg-slate-200"
+              >
+                Voltar
+              </button>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+      <PlayerAdd roomId={id} />
+    </>
   );
 }

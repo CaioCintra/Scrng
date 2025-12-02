@@ -21,7 +21,7 @@ export const apiConst =
         api: process.env.NEXT_PUBLIC_API_URL,
       }
     : {
-        api: "http://localhost:3333",
+        api: process.env.NEXT_PUBLIC_API_URL,
       };
 
 export const authUser = async (name, password) => {
