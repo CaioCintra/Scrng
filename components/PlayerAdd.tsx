@@ -5,7 +5,13 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { IoMdAdd } from "react-icons/io";
 
-export default function PlayerAdd({ roomId }: { roomId: undefined | string }) {
+export default function PlayerAdd({
+  roomId,
+  onUpdated,
+}: {
+  roomId: undefined | string;
+  onUpdated: () => void;
+}) {
   const router = useRouter();
   const [name, setName] = useState("");
   const [adding, setAdding] = useState(false);
@@ -16,7 +22,7 @@ export default function PlayerAdd({ roomId }: { roomId: undefined | string }) {
         onClick={async () => {
           setAdding(true);
         }}
-        className="mt-4 px-4 w-16 h-16 fixed bottom-10 right-10 py-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition text-2xl hover:text-4xl items-center justify-center flex hover:-translate-y-1 hover:scale-110"
+        className="mt-4 px-4 w-16 h-16 fixed bottom-10 right-10 py-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition text-2xl hover:text-4xl items-center justify-center flex hover:-translate-y-1 hover:scale-110 cursor-pointer"
       >
         <IoMdAdd />
       </button>
@@ -35,7 +41,7 @@ export default function PlayerAdd({ roomId }: { roomId: undefined | string }) {
               <div className="flex justify-end gap-2">
                 <button
                   onClick={() => setAdding(false)}
-                  className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 transition"
+                  className="cursor-pointer px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 transition"
                 >
                   {" "}
                   Cancelar
@@ -45,9 +51,11 @@ export default function PlayerAdd({ roomId }: { roomId: undefined | string }) {
                     if (name.trim() === "") return;
                     await addPlayer(roomId, name.trim());
                     setAdding(false);
+                    setName("");
+                    onUpdated();
                     router.refresh();
                   }}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition"
+                  className="cursor-pointer px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition"
                 >
                   {" "}
                   Adicionar

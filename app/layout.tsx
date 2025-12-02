@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ClientProviders from "../components/ClientProviders";
 import { cookies } from "next/headers";
+import Header from "@/components/Header";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,12 +37,15 @@ export default async function RootLayout({
     // ignore parse/SSR differences
   }
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <ClientProviders initialUser={initialUser}>{children}</ClientProviders>
-      </body>
+    <html>
+      <ClientProviders initialUser={initialUser}>
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        >
+          <Header />
+          {children}
+        </body>
+      </ClientProviders>
     </html>
   );
 }

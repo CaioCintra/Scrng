@@ -21,7 +21,7 @@ export const apiConst =
         api: process.env.NEXT_PUBLIC_API_URL,
       }
     : {
-        api: "http://localhost:3333",
+        api: process.env.NEXT_PUBLIC_API_URL,
       };
 
 export const getRooms = async (user) => {
@@ -95,7 +95,6 @@ export const deleteRoom = async (roomId) => {
   try {
     const response = await fetch(`${apiConst.api}/rooms/${roomId}`, {
       method: "DELETE",
-      headers: { "Content-Type": "application/json" },
     });
     const data = await response.json().catch(() => null);
     if (response.ok) return data;

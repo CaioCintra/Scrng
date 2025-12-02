@@ -21,7 +21,7 @@ export const apiConst =
         api: process.env.NEXT_PUBLIC_API_URL,
       }
     : {
-        api: "http://localhost:3333",
+        api: process.env.NEXT_PUBLIC_API_URL,
       };
 
 export const addPoints = async (roomId, playerId, points) => {
@@ -70,6 +70,28 @@ export const addRoomPoints = async (roomId, points) => {
     };
   } catch (error) {
     console.error("Error adding points:", error);
+    throw error;
+  }
+};
+
+export const removePlayer = async (roomId, playerId) => {
+  try {
+    const response = await fetch(
+      `${apiConst.api}/rooms/${roomId}/players/${playerId}`,
+      {
+        method: "DELETE",
+      }
+    );
+    const data = await response.json().catch(() => null);
+    if (response.ok) return data;
+    return {
+      error:
+        data?.error ??
+        data?.message ??
+        `Request failed with status ${response.status}`,
+    };
+  } catch (error) {
+    console.error("Error removing player:", error);
     throw error;
   }
 };
