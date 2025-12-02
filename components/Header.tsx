@@ -12,15 +12,27 @@ export default function Header() {
   }
 
   return (
-    <header className="w-full p-12 text-white relative flex justify-center">
-      <Link href="/" className="text-6xl">
+    <header className="w-full p-6 md:p-12 text-white relative flex justify-center items-center">
+      <Link href="/" className="text-4xl md:text-6xl font-bold">
         Scrng
       </Link>
 
       {!!user && (
         <button
           onClick={handleLogout}
-          className="absolute right-12 top-1/2 -translate-y-1/2 bg-indigo-600 px-8 py-2 rounded-full hover:bg-indigo-700 transition cursor-pointer"
+          className="
+            absolute 
+            right-4 md:right-12 
+            top-1/2 
+            -translate-y-1/2
+            bg-indigo-600
+            px-4 py-2 md:px-8 md:py-2 
+            text-sm md:text-base
+            rounded-full 
+            hover:bg-indigo-700 
+            transition 
+            cursor-pointer
+          "
         >
           Sair
         </button>

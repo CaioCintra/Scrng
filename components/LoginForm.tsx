@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useGlobal } from "../context/GlobalContext";
 import { authUser, createUser } from "@/app/service/login";
+import { SlOptionsVertical } from "react-icons/sl";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -20,6 +21,9 @@ export default function LoginForm() {
   const [newPassConfirm, setNewPassConfirm] = useState("");
   const [modalError, setModalError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+
+  // Tooltip do modal
+  const [openMenu, setOpenMenu] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -55,18 +59,10 @@ export default function LoginForm() {
   async function handleCreateUser() {
     setModalError(null);
 
-    if (!newUser.trim()) {
-      setModalError("Digite um nome de usuário");
-      return;
-    }
-    if (!newPass.trim()) {
-      setModalError("Digite uma senha");
-      return;
-    }
-    if (newPass !== newPassConfirm) {
-      setModalError("As senhas não coincidem");
-      return;
-    }
+    if (!newUser.trim()) return setModalError("Digite um nome de usuário");
+    if (!newPass.trim()) return setModalError("Digite uma senha");
+    if (newPass !== newPassConfirm)
+      return setModalError("As senhas não coincidem");
 
     setCreating(true);
 
@@ -78,7 +74,6 @@ export default function LoginForm() {
         return;
       }
 
-      // Fechar o modal
       setShowModal(false);
       setNewUser("");
       setNewPass("");
@@ -94,10 +89,10 @@ export default function LoginForm() {
   if (user) return null;
 
   return (
-    <div className="min-h-[calc(100vh-220px)] flex items-center justify-center p-6 text-neutral-800">
+    <div className="min-h-[calc(100vh-144px)] flex items-center justify-center p-4 text-neutral-800">
       <form
         onSubmit={handleSubmit}
-        className="w-1/4 p-10 rounded-xl shadow-lg bg-linear-to-b from-white to-slate-50 flex flex-col gap-3"
+        className="w-full max-w-sm p-8 rounded-xl shadow-lg bg-gradient-to-b from-white to-slate-50 flex flex-col gap-3"
       >
         <h2 className="m-0 mb-3 text-3xl font-semibold">Entrar</h2>
 
@@ -134,7 +129,6 @@ export default function LoginForm() {
           {loading ? "Entrando..." : "Entrar"}
         </button>
 
-        {/* Botão para abrir modal */}
         <button
           type="button"
           onClick={() => setShowModal(true)}
@@ -144,13 +138,33 @@ export default function LoginForm() {
         </button>
       </form>
 
-      {/* Modal */}
+      {/* Modal Criar Usuário */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded-xl shadow-xl w-96 relative">
-            <h2 className="text-xl font-semibold mb-4">Novo usuário</h2>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white p-6 rounded-xl shadow-xl w-full max-w-md relative">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Novo usuário</h2>
 
-            <label className="flex flex-col gap-1 text-sm">
+              <button
+                className="cursor-pointer p-2 rounded-full hover:bg-gray-100 transition relative"
+                onClick={() => setOpenMenu(!openMenu)}
+              >
+                <SlOptionsVertical className="text-gray-700" />
+
+                {openMenu && (
+                  <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg border rounded-lg py-2 z-50">
+                    <div
+                      className="w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => alert("Opção exemplo")}
+                    >
+                      Exemplo
+                    </div>
+                  </div>
+                )}
+              </button>
+            </div>
+
+            <label className="flex flex-col gap-1 text-sm mt-4">
               Usuário
               <input
                 className="px-3 py-2 rounded-lg border border-slate-300 outline-none"

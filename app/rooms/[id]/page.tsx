@@ -24,8 +24,8 @@ export default function RoomPage() {
   const [room, setRoom] = useState<RoomType>(null);
   const [loading, setLoading] = useState(false);
 
-  const [points, setpoints] = useState(10); // usado nos jogadores
-  const [roomPoints, setRoomPoints] = useState(10); // usado na pontuação geral
+  const [points, setpoints] = useState(10);
+  const [roomPoints, setRoomPoints] = useState(10);
 
   const [error, setError] = useState<string | null>(null);
   const [openMenuPlayerId, setOpenMenuPlayerId] = useState<string | null>(null);
@@ -74,8 +74,8 @@ export default function RoomPage() {
 
   return (
     <>
-      <div className="p-8 flex items-center justify-center text-black">
-        <div className="w-full max-w-3xl p-6 bg-white rounded-xl shadow">
+      <div className="p-4 md:p-8 flex items-center justify-center text-black">
+        <div className="w-full max-w-3xl p-4 md:p-6 bg-white rounded-xl shadow">
           {loading ? (
             <p>Carregando sala...</p>
           ) : error ? (
@@ -90,15 +90,16 @@ export default function RoomPage() {
             </div>
           ) : room ? (
             <div>
-              <div className="flex items-center justify-between w-full">
+              {/* HEADER DA SALA */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between w-full gap-4">
                 <div className="flex-1 flex justify-center">
-                  <h1 className="text-4xl font-bold text-center">
+                  <h1 className="text-3xl md:text-4xl font-bold text-center break-words">
                     {room?.name ?? "Sala"}
                   </h1>
                 </div>
 
                 {/* Ordenação */}
-                <div className="flex gap-3">
+                <div className="flex gap-3 justify-center md:justify-end">
                   <button
                     onClick={() => setSort("points")}
                     className={`cursor-pointer p-2 rounded border transition ${
@@ -124,15 +125,17 @@ export default function RoomPage() {
               </div>
 
               {/* Pontuação geral */}
-              <div className="mt-6 flex items-center justify-center gap-3">
-                <p className="font-bold">Pontuação Geral</p>
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                <p className="font-bold text-center w-full md:w-auto">
+                  Pontuação Geral
+                </p>
 
                 <button
                   onClick={async () => {
                     await addRoomPoints(id, roomPoints);
                     refreshRoom();
                   }}
-                  className="cursor-pointer px-3 py-1 h-12 w-12 rounded-full bg-green-400 text-green-950 hover:bg-green-600 transition flex items-center justify-center"
+                  className="cursor-pointer px-3 py-1 h-10 w-10 md:h-12 md:w-12 rounded-full bg-green-400 text-green-950 hover:bg-green-600 transition flex items-center justify-center"
                 >
                   <IoMdAdd />
                 </button>
@@ -149,7 +152,7 @@ export default function RoomPage() {
                     if (value > 9999) value = 9999;
                     setRoomPoints(value);
                   }}
-                  className="w-32 px-3 py-1 rounded-full text-center font-bold bg-gray-100 hover:shadow focus:outline-none focus:bg-gray-200 appearance-none"
+                  className="w-24 md:w-32 px-3 py-1 rounded-full text-center font-bold bg-gray-100 focus:bg-gray-200 outline-none"
                 />
 
                 <button
@@ -157,19 +160,21 @@ export default function RoomPage() {
                     await addRoomPoints(id, -roomPoints);
                     refreshRoom();
                   }}
-                  className="cursor-pointer px-3 py-1 h-12 w-12 rounded-full bg-red-400 text-red-950 hover:bg-red-600 transition flex items-center justify-center"
+                  className="cursor-pointer px-3 py-1 h-10 w-10 md:h-12 md:w-12 rounded-full bg-red-400 text-red-950 hover:bg-red-600 transition flex items-center justify-center"
                 >
                   <IoMdRemove />
                 </button>
               </div>
 
               {/* Lista de jogadores */}
-              <section className="mt-4">
-                <h2 className="text-xl font-semibold mb-3">Jogadores</h2>
+              <section className="mt-6">
+                <h2 className="text-xl font-semibold mb-3 text-center md:text-left">
+                  Jogadores
+                </h2>
 
                 <div className="grid gap-3">
                   {sortedPlayers.length === 0 ? (
-                    <p className="text-sm text-neutral-500">
+                    <p className="text-sm text-neutral-500 text-center">
                       Nenhum jogador na sala.
                     </p>
                   ) : (
@@ -185,14 +190,14 @@ export default function RoomPage() {
                       return (
                         <div
                           key={p.id}
-                          className="flex items-center gap-4 p-3 rounded-lg border bg-white"
+                          className="flex flex-col md:flex-row md:items-center gap-4 p-3 rounded-lg border bg-white relative"
                         >
-                          <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-xl font-semibold text-gray-700">
+                          <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gray-200 flex items-center justify-center text-xl font-semibold text-gray-700 mx-auto md:mx-0">
                             {initials}
                           </div>
 
-                          <div className="flex-1">
-                            <div className="text-lg font-medium text-gray-800">
+                          <div className="flex-1 text-center md:text-left">
+                            <div className="text-lg font-medium text-gray-800 break-words">
                               {p.name}
                             </div>
                             <div className="text-sm text-gray-500">
@@ -200,74 +205,76 @@ export default function RoomPage() {
                             </div>
                           </div>
 
-                          {/* Botão somar */}
-                          <button
-                            onClick={async () => {
-                              await addPoints(id, p.id, points);
-                              refreshRoom();
-                            }}
-                            className="cursor-pointer px-3 py-1 h-12 w-12 rounded-full bg-green-400 text-green-950 hover:bg-green-600 transition flex items-center justify-center"
-                          >
-                            <IoMdAdd />
-                          </button>
+                          {/* Botões */}
+                          <div className="flex flex-wrap justify-center md:justify-end gap-2 items-center">
+                            <button
+                              onClick={async () => {
+                                await addPoints(id, p.id, points);
+                                refreshRoom();
+                              }}
+                              className="cursor-pointer px-3 py-1 h-10 w-10 md:h-12 md:w-12 rounded-full bg-green-400 text-green-950 hover:bg-green-600 transition flex items-center justify-center"
+                            >
+                              <IoMdAdd />
+                            </button>
 
-                          {/* INPUT certo do jogador */}
-                          <input
-                            type="number"
-                            min={0}
-                            max={9999}
-                            value={points}
-                            onChange={(e) => {
-                              let value = Number(e.target.value);
-                              if (isNaN(value)) value = 0;
-                              if (value < 0) value = 0;
-                              if (value > 9999) value = 9999;
-                              setpoints(value);
-                            }}
-                            className="w-32 px-3 py-1 rounded-full text-center font-bold bg-gray-100 hover:shadow focus:outline-none focus:bg-gray-200 appearance-none"
-                          />
+                            <input
+                              type="number"
+                              min={0}
+                              max={9999}
+                              value={points}
+                              onChange={(e) => {
+                                let value = Number(e.target.value);
+                                if (isNaN(value)) value = 0;
+                                if (value < 0) value = 0;
+                                if (value > 9999) value = 9999;
+                                setpoints(value);
+                              }}
+                              className="w-24 md:w-32 px-3 py-1 rounded-full text-center font-bold bg-gray-100 focus:bg-gray-200 outline-none"
+                            />
 
-                          {/* Botão remover */}
-                          <button
-                            onClick={async () => {
-                              await addPoints(id, p.id, -points);
-                              refreshRoom();
-                            }}
-                            className="cursor-pointer px-3 py-1 h-12 w-12 rounded-full bg-red-400 text-red-950 hover:bg-red-600 transition flex items-center justify-center"
-                          >
-                            <IoMdRemove />
-                          </button>
+                            <button
+                              onClick={async () => {
+                                await addPoints(id, p.id, -points);
+                                refreshRoom();
+                              }}
+                              className="cursor-pointer px-3 py-1 h-10 w-10 md:h-12 md:w-12 rounded-full bg-red-400 text-red-950 hover:bg-red-600 transition flex items-center justify-center"
+                            >
+                              <IoMdRemove />
+                            </button>
+                          </div>
 
-                          <div className="px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xl font-semibold">
+                          <div className="px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-lg font-semibold mx-auto md:mx-0">
                             {p.points}
                           </div>
 
                           {/* Menu do jogador */}
-                          <button
-                            className="cursor-pointer relative p-2 rounded-full hover:bg-gray-200 transition"
-                            onClick={() =>
-                              setOpenMenuPlayerId(
-                                openMenuPlayerId === p.id ? null : p.id
-                              )
-                            }
-                          >
-                            <SlOptionsVertical className="text-gray-700" />
+                          <div className="flex justify-center md:justify-end">
+                            <button
+                              className="cursor-pointer relative p-2 rounded-full hover:bg-gray-200 transition"
+                              onClick={() =>
+                                setOpenMenuPlayerId(
+                                  openMenuPlayerId === p.id ? null : p.id
+                                )
+                              }
+                            >
+                              <SlOptionsVertical className="text-gray-700" />
 
-                            {openMenuPlayerId === p.id && (
-                              <div className="absolute left-0 mt-2 w-40 bg-white shadow-lg border rounded-lg py-2 z-50">
-                                <div
-                                  className="w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600 cursor-pointer"
-                                  onClick={async () => {
-                                    setOpenMenuPlayerId(null);
-                                    await removePlayer(room.id, p.id);
-                                    refreshRoom();
-                                  }}
-                                >
-                                  Remover jogador
+                              {openMenuPlayerId === p.id && (
+                                <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg border rounded-lg py-2 z-50">
+                                  <div
+                                    className="w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600 cursor-pointer"
+                                    onClick={async () => {
+                                      setOpenMenuPlayerId(null);
+                                      await removePlayer(room.id, p.id);
+                                      refreshRoom();
+                                    }}
+                                  >
+                                    Remover jogador
+                                  </div>
                                 </div>
-                              </div>
-                            )}
-                          </button>
+                              )}
+                            </button>
+                          </div>
                         </div>
                       );
                     })
