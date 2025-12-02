@@ -23,12 +23,13 @@ export default function RoomPage() {
   const { user } = useGlobal();
   const [room, setRoom] = useState<RoomType>(null);
   const [loading, setLoading] = useState(false);
-  const [points, setpoints] = useState(10);
-  const [roomPoints, setRoomPoints] = useState(10);
+
+  const [points, setpoints] = useState(10); // usado nos jogadores
+  const [roomPoints, setRoomPoints] = useState(10); // usado na pontuação geral
+
   const [error, setError] = useState<string | null>(null);
   const [openMenuPlayerId, setOpenMenuPlayerId] = useState<string | null>(null);
 
-  // NOVO: controle da ordenação
   const [sort, setSort] = useState<"points" | "alpha">("points");
 
   const id = params?.id as string | undefined;
@@ -62,11 +63,8 @@ export default function RoomPage() {
   }, [id, user, router]);
 
   const sortedPlayers = [...(room?.players ?? [])].sort((a, b) => {
-    if (sort === "alpha") {
-      return a.name.localeCompare(b.name);
-    } else {
-      return b.points - a.points; // padrão
-    }
+    if (sort === "alpha") return a.name.localeCompare(b.name);
+    return b.points - a.points;
   });
 
   const refreshRoom = async () => {
@@ -93,18 +91,17 @@ export default function RoomPage() {
           ) : room ? (
             <div>
               <div className="flex items-center justify-between w-full">
-                <div className="flex-1 flex justi fy-center">
+                <div className="flex-1 flex justify-center">
                   <h1 className="text-4xl font-bold text-center">
                     {room?.name ?? "Sala"}
                   </h1>
                 </div>
 
-                {/* Ordenação dos jogadores */}
+                {/* Ordenação */}
                 <div className="flex gap-3">
-                  {/* Ordenar por pontos */}
                   <button
                     onClick={() => setSort("points")}
-                    className={`cursor-pointer p-2 rounded border flex items-center gap-2 transition ${
+                    className={`cursor-pointer p-2 rounded border transition ${
                       sort === "points"
                         ? "bg-blue-500 text-white border-blue-500"
                         : "bg-gray-100 text-gray-700"
@@ -113,10 +110,9 @@ export default function RoomPage() {
                     <LuArrowUp10 size={18} />
                   </button>
 
-                  {/* Ordenar por ordem alfabética */}
                   <button
                     onClick={() => setSort("alpha")}
-                    className={`cursor-pointer p-2 rounded border flex items-center gap-2 transition ${
+                    className={`cursor-pointer p-2 rounded border transition ${
                       sort === "alpha"
                         ? "bg-blue-500 text-white border-blue-500"
                         : "bg-gray-100 text-gray-700"
@@ -130,6 +126,7 @@ export default function RoomPage() {
               {/* Pontuação geral */}
               <div className="mt-6 flex items-center justify-center gap-3">
                 <p className="font-bold">Pontuação Geral</p>
+
                 <button
                   onClick={async () => {
                     await addRoomPoints(id, roomPoints);
@@ -139,29 +136,22 @@ export default function RoomPage() {
                 >
                   <IoMdAdd />
                 </button>
+
                 <input
                   type="number"
                   min={0}
                   max={9999}
-                  className="
-                    w-32 px-3 py-1 rounded-full text-center font-bold bg-gray-100
-                    hover:shadow
-                    focus:outline-none focus:ring-0 focus:bg-gray-200
-                    [&::-webkit-inner-spin-button]:appearance-none
-                    [&::-webkit-outer-spin-button]:appearance-none
-                    appearance-none
-                  "
-                  value={points}
+                  value={roomPoints}
                   onChange={(e) => {
                     let value = Number(e.target.value);
-
                     if (isNaN(value)) value = 0;
                     if (value < 0) value = 0;
                     if (value > 9999) value = 9999;
-
                     setRoomPoints(value);
                   }}
+                  className="w-32 px-3 py-1 rounded-full text-center font-bold bg-gray-100 hover:shadow focus:outline-none focus:bg-gray-200 appearance-none"
                 />
+
                 <button
                   onClick={async () => {
                     await addRoomPoints(id, -roomPoints);
@@ -210,6 +200,7 @@ export default function RoomPage() {
                             </div>
                           </div>
 
+                          {/* Botão somar */}
                           <button
                             onClick={async () => {
                               await addPoints(id, p.id, points);
@@ -220,30 +211,23 @@ export default function RoomPage() {
                             <IoMdAdd />
                           </button>
 
+                          {/* INPUT certo do jogador */}
                           <input
                             type="number"
                             min={0}
                             max={9999}
-                            className="
-                              w-32 px-3 py-1 rounded-full text-center font-bold bg-gray-100
-                              hover:shadow
-                              focus:outline-none focus:ring-0 focus:bg-gray-200
-                              [&::-webkit-inner-spin-button]:appearance-none
-                              [&::-webkit-outer-spin-button]:appearance-none
-                              appearance-none
-                            "
                             value={points}
                             onChange={(e) => {
                               let value = Number(e.target.value);
-
                               if (isNaN(value)) value = 0;
                               if (value < 0) value = 0;
                               if (value > 9999) value = 9999;
-
                               setpoints(value);
                             }}
+                            className="w-32 px-3 py-1 rounded-full text-center font-bold bg-gray-100 hover:shadow focus:outline-none focus:bg-gray-200 appearance-none"
                           />
 
+                          {/* Botão remover */}
                           <button
                             onClick={async () => {
                               await addPoints(id, p.id, -points);
@@ -257,6 +241,8 @@ export default function RoomPage() {
                           <div className="px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xl font-semibold">
                             {p.points}
                           </div>
+
+                          {/* Menu do jogador */}
                           <button
                             className="cursor-pointer relative p-2 rounded-full hover:bg-gray-200 transition"
                             onClick={() =>
@@ -267,10 +253,8 @@ export default function RoomPage() {
                           >
                             <SlOptionsVertical className="text-gray-700" />
 
-                            {/* Menu visível apenas para o jogador clicado */}
                             {openMenuPlayerId === p.id && (
                               <div className="absolute left-0 mt-2 w-40 bg-white shadow-lg border rounded-lg py-2 z-50">
-                                {/* Remover jogador */}
                                 <div
                                   className="w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600 cursor-pointer"
                                   onClick={async () => {
@@ -313,6 +297,7 @@ export default function RoomPage() {
           )}
         </div>
       </div>
+
       <PlayerAdd roomId={id} onUpdated={refreshRoom} />
     </>
   );

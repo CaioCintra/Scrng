@@ -107,7 +107,7 @@ export default function Home() {
                   e.stopPropagation(); // evita abrir a sala ao clicar no ícone
                   setOpenTooltip((prev) => (prev === room.id ? null : room.id));
                 }}
-                className="cursor-pointer w-12 h-12 text-4xl relative p-2 rounded-full hover:bg-indigo-800 transition"
+                className="cursor-pointer w-12 h-12 text-4xl relative p-2 rounded-full hover:bg-indigo-800 transition flex items-center justify-center"
               >
                 ⋮
               </button>
