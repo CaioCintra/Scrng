@@ -27,7 +27,7 @@ export default function PlayerAdd({
         <IoMdAdd />
       </button>
       {adding && (
-        <div className="fixed inset-0 text-black bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 text-black   bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm">
             <h2 className="text-2xl font-semibold mb-4">Adicionar Jogador</h2>
 

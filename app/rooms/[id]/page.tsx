@@ -7,6 +7,7 @@ import { addPoints, addRoomPoints, removePlayer } from "../../service/players";
 import { useGlobal } from "@/context/GlobalContext";
 import { IoMdAdd, IoMdRemove } from "react-icons/io";
 import PlayerAdd from "@/components/PlayerAdd";
+import QrCodeModal from "@/components/QrCodeModal";
 import { LuAArrowDown, LuArrowUp10 } from "react-icons/lu";
 import { SlOptionsVertical } from "react-icons/sl";
 
@@ -31,6 +32,7 @@ export default function RoomPage() {
   const [openMenuPlayerId, setOpenMenuPlayerId] = useState<string | null>(null);
 
   const [sort, setSort] = useState<"points" | "alpha">("points");
+  const [qrModalPlayer, setQrModalPlayer] = useState<Player | null>(null);
 
   const id = params?.id as string | undefined;
 
@@ -253,7 +255,7 @@ export default function RoomPage() {
                               className="cursor-pointer relative p-2 rounded-full hover:bg-gray-200 transition"
                               onClick={() =>
                                 setOpenMenuPlayerId(
-                                  openMenuPlayerId === p.id ? null : p.id
+                                  openMenuPlayerId === p.id ? null : p.id,
                                 )
                               }
                             >
@@ -261,6 +263,16 @@ export default function RoomPage() {
 
                               {openMenuPlayerId === p.id && (
                                 <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg border rounded-lg py-2 z-50">
+                                  <div
+                                    className="w-full text-left px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                                    onClick={() => {
+                                      setOpenMenuPlayerId(null);
+                                      setQrModalPlayer(p);
+                                    }}
+                                  >
+                                    Acesso remoto
+                                  </div>
+
                                   <div
                                     className="w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600 cursor-pointer"
                                     onClick={async () => {
@@ -306,6 +318,13 @@ export default function RoomPage() {
       </div>
 
       <PlayerAdd roomId={id} onUpdated={refreshRoom} />
+
+      <QrCodeModal
+        open={!!qrModalPlayer}
+        url={`${process.env.NEXT_PUBLIC_API_URL}/users/${qrModalPlayer?.id}`}
+        playerName={qrModalPlayer?.name}
+        onClose={() => setQrModalPlayer(null)}
+      />
     </>
   );
 }

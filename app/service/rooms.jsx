@@ -131,3 +131,16 @@ export const addPlayer = async (roomId, playerName) => {
     throw error;
   }
 };
+
+// service/players.ts
+export async function getPlayer(id) {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/${id}`);
+    if (!res.ok) {
+      return { error: `Erro ao buscar jogador (${res.status})` };
+    }
+    return await res.json();
+  } catch (err) {
+    return { error: String(err) };
+  }
+}
