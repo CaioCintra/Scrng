@@ -144,3 +144,22 @@ export async function getPlayer(id) {
     return { error: String(err) };
   }
 }
+
+export async function updatePlayer(id, data) {
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/players/${id}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      },
+    );
+    if (!res.ok) {
+      return { error: `Erro ao atualizar jogador (${res.status})` };
+    }
+    return await res.json().catch(() => ({}));
+  } catch (err) {
+    return { error: String(err) };
+  }
+}

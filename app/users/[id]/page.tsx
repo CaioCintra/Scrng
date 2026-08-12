@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { getPlayer } from "../../service/rooms";
+import { getPlayer, updatePlayer } from "../../service/rooms";
+import EditProfileModal from "@/components/EditProfileModal";
+import { FiEdit2 } from "react-icons/fi";
 
 type Player = {
   id: string;
@@ -10,7 +12,15 @@ type Player = {
   points: number;
   roomId?: string;
   roomName?: string;
+  avatar?: string;
 } | null;
+
+const AVATAR_STYLE = "avataaars";
+function avatarUrl(seed: string) {
+  return `https://api.dicebear.com/9.x/${AVATAR_STYLE}/svg?seed=${encodeURIComponent(
+    seed
+  )}`;
+}
 
 export default function UserPage() {
   const params = useParams();
@@ -18,6 +28,7 @@ export default function UserPage() {
   const [player, setPlayer] = useState<Player>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
 
   const id = params?.id as string | undefined;
 
@@ -52,8 +63,18 @@ export default function UserPage() {
     .join("")
     .toUpperCase();
 
+  const handleSaveProfile = async (data: { name: string; avatar: string }) => {
+    if (!player?.id) return;
+    const res = await updatePlayer(player.id, data);
+    if (res?.error) {
+      setError(res.error);
+      return;
+    }
+    setPlayer((prev) => (prev ? { ...prev, ...data } : prev));
+  };
+
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-4 sm:p-6 md:p-8 bg-gray-50 text-black">
+    <div className="w-full flex items-center justify-center p-4 sm:p-6 md:p-8 bg-[#0A0A0A] text-black">
       <div className="w-full max-w-sm sm:max-w-md p-5 sm:p-8 bg-white rounded-2xl shadow-lg">
         {loading ? (
           <p className="text-center text-gray-500">Carregando jogador...</p>
@@ -69,8 +90,26 @@ export default function UserPage() {
           </div>
         ) : player ? (
           <div className="flex flex-col items-center text-center gap-4">
-            <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-indigo-100 flex items-center justify-center text-3xl sm:text-4xl font-bold text-indigo-700 shrink-0">
-              {initials}
+            <div className="relative">
+              {player.avatar ? (
+                <img
+                  src={avatarUrl(player.avatar)}
+                  alt={player.name}
+                  className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-indigo-50 border shrink-0"
+                />
+              ) : (
+                <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-indigo-100 flex items-center justify-center text-3xl sm:text-4xl font-bold text-indigo-700 shrink-0">
+                  {initials}
+                </div>
+              )}
+
+              <button
+                onClick={() => setEditOpen(true)}
+                className="cursor-pointer absolute -bottom-1 -right-1 p-2 rounded-full bg-indigo-600 text-white shadow hover:bg-indigo-700 transition"
+                aria-label="Editar perfil"
+              >
+                <FiEdit2 size={14} />
+              </button>
             </div>
 
             <h1 className="text-2xl sm:text-3xl font-bold wrap-break-word w-full">
@@ -104,6 +143,16 @@ export default function UserPage() {
           </div>
         )}
       </div>
+
+      {player && (
+        <EditProfileModal
+          open={editOpen}
+          currentName={player.name}
+          currentAvatar={player.avatar}
+          onClose={() => setEditOpen(false)}
+          onSave={handleSaveProfile}
+        />
+      )}
     </div>
   );
 }
