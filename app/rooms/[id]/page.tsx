@@ -321,7 +321,7 @@ export default function RoomPage() {
 
       <QrCodeModal
         open={!!qrModalPlayer}
-        url={`${process.env.NEXT_PUBLIC_WEB_URL}/users/${qrModalPlayer?.id}`}
+        url={`${process.env.NEXT_PUBLIC_SYSTEM_URL}/users/${qrModalPlayer?.id}`}
         playerName={qrModalPlayer?.name}
         onClose={() => setQrModalPlayer(null)}
       />
