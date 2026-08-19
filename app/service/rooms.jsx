@@ -163,3 +163,35 @@ export async function updatePlayer(id, data) {
     return { error: String(err) };
   }
 }
+export async function getRoomSettings(roomId) {
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/rooms/${roomId}/settings`,
+    );
+    if (!res.ok) {
+      return { error: `Erro ao buscar configurações (${res.status})` };
+    }
+    return await res.json();
+  } catch (err) {
+    return { error: String(err) };
+  }
+}
+
+export async function updateRoomSettings(roomId, data) {
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/rooms/${roomId}/settings`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      },
+    );
+    if (!res.ok) {
+      return { error: `Erro ao salvar configurações (${res.status})` };
+    }
+    return await res.json();
+  } catch (err) {
+    return { error: String(err) };
+  }
+}

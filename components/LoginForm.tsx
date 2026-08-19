@@ -8,7 +8,7 @@ import { SlOptionsVertical } from "react-icons/sl";
 
 export default function LoginForm() {
   const router = useRouter();
-  const { setUser, user } = useGlobal();
+  const { setUser, user, showError } = useGlobal();
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -41,6 +41,7 @@ export default function LoginForm() {
 
       if (response?.error) {
         setError(response.error);
+        showError(response.error);
         return;
       }
 
@@ -79,8 +80,10 @@ export default function LoginForm() {
       setNewPass("");
       setNewPassConfirm("");
       setModalError(null);
-    } catch (err: any) {
-      setModalError(err.message || "Erro ao criar usuário");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Erro ao criar usuário";
+      setModalError(message);
+      showError(message);
     } finally {
       setCreating(false);
     }

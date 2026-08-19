@@ -7,11 +7,12 @@ type EditProfileModalProps = {
   open: boolean;
   currentName: string;
   currentAvatar?: string;
+  canEditName?: boolean;
   onClose: () => void;
   onSave: (data: { name: string; avatar: string }) => Promise<void> | void;
 };
 
-const AVATAR_STYLE = "avataaars";
+const AVATAR_STYLE = "adventurer";
 
 function avatarUrl(seed: string) {
   return `https://api.dicebear.com/9.x/${AVATAR_STYLE}/svg?seed=${encodeURIComponent(
@@ -27,6 +28,7 @@ export default function EditProfileModal({
   open,
   currentName,
   currentAvatar,
+  canEditName = true,
   onClose,
   onSave,
 }: EditProfileModalProps) {
@@ -46,10 +48,11 @@ export default function EditProfileModal({
   };
 
   const handleSave = async () => {
-    if (!name.trim()) return;
+    const finalName = canEditName ? name.trim() : currentName;
+    if (!finalName) return;
     setSaving(true);
     try {
-      await onSave({ name: name.trim(), avatar: seed });
+      await onSave({ name: finalName, avatar: seed });
       onClose();
     } finally {
       setSaving(false);
@@ -57,7 +60,7 @@ export default function EditProfileModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
+    <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 p-4">
       <div className="relative w-full max-w-sm bg-white rounded-xl shadow-lg p-6 text-black max-h-[90vh] overflow-y-auto">
         <button
           onClick={onClose}
@@ -83,11 +86,21 @@ export default function EditProfileModal({
         </label>
         <input
           type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full px-3 py-2 rounded-lg border mb-4 outline-none focus:border-indigo-400"
+          value={canEditName ? name : currentName}
+          onChange={(e) => canEditName && setName(e.target.value)}
+          disabled={!canEditName}
+          className={`w-full px-3 py-2 rounded-lg border outline-none focus:border-indigo-400 ${
+            !canEditName ? "bg-gray-100 text-gray-500 cursor-not-allowed" : ""
+          }`}
           maxLength={40}
         />
+        {!canEditName ? (
+          <p className="text-xs text-gray-400 mt-1 mb-4">
+            A edição do nome foi desativada pelo dono da sala.
+          </p>
+        ) : (
+          <div className="mb-4" />
+        )}
 
         <div className="flex items-center justify-between mb-2">
           <label className="block text-sm font-medium text-gray-600">
@@ -132,7 +145,7 @@ export default function EditProfileModal({
           <button
             onClick={handleSave}
             type="button"
-            disabled={saving || !name.trim()}
+            disabled={saving || (canEditName && !name.trim())}
             className="cursor-pointer flex-1 px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700 transition disabled:opacity-50"
           >
             {saving ? "Salvando..." : "Salvar"}

@@ -1,16 +1,29 @@
 "use client";
 
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useCallback, useContext, useState } from "react";
 
 type GlobalContextType = {
 	user: unknown | undefined;
 	setUser: (u: unknown) => void;
+	showError: (error: unknown, fallback?: string) => void;
 };
 
 const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
 
 export function GlobalProvider({ children, initialUser }: { children: React.ReactNode; initialUser?: unknown }) {
 	const [user, _setUser] = useState<unknown | undefined>(initialUser);
+
+	const showError = useCallback((error: unknown, fallback = "Ocorreu um erro") => {
+		const message =
+			typeof error === "string"
+				? error
+				: error && typeof error === "object" && ("error" in error || "message" in error)
+					? String("error" in error ? error.error : error.message)
+					: error instanceof Error
+						? error.message
+						: fallback;
+		window.dispatchEvent(new CustomEvent("scrng:error", { detail: message }));
+	}, []);
 
 	const setUser = (u: unknown) => {
 		_setUser(u);
@@ -29,7 +42,7 @@ export function GlobalProvider({ children, initialUser }: { children: React.Reac
 		}
 	};
 
-	return <GlobalContext.Provider value={{ user, setUser }}>{children}</GlobalContext.Provider>;
+	return <GlobalContext.Provider value={{ user, setUser, showError }}>{children}</GlobalContext.Provider>;
 }
 
 export function useGlobal() {

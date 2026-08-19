@@ -4,6 +4,7 @@ import { addPlayer } from "@/app/service/rooms";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { IoMdAdd } from "react-icons/io";
+import { useGlobal } from "@/context/GlobalContext";
 
 export default function PlayerAdd({
   roomId,
@@ -15,6 +16,7 @@ export default function PlayerAdd({
   const router = useRouter();
   const [name, setName] = useState("");
   const [adding, setAdding] = useState(false);
+  const { showError } = useGlobal();
 
   return (
     <>
@@ -50,7 +52,16 @@ export default function PlayerAdd({
               <button
                 onClick={async () => {
                   if (name.trim() === "") return;
-                  await addPlayer(roomId, name.trim());
+                  try {
+                    const res = await addPlayer(roomId, name.trim());
+                    if (res?.error) {
+                      showError(res.error);
+                      return;
+                    }
+                  } catch (err) {
+                    showError(err, "Erro ao adicionar jogador");
+                    return;
+                  }
                   setAdding(false);
                   setName("");
                   onUpdated();

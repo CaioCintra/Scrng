@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { getRooms, createRoom, deleteRoom } from "./service/rooms";
 
 export default function Home() {
-  const { user } = useGlobal();
+  const { user, showError } = useGlobal();
 
   const router = useRouter();
   const [rooms, setRooms] = useState<any[]>([]);
@@ -30,12 +30,14 @@ export default function Home() {
           (user as { id?: string })?.id ?? (user as unknown as string);
 
         const res = await getRooms(userId);
-        if (res?.error)
-          return console.error("Failed to load rooms:", res.error);
+        if (res?.error) {
+          showError(res.error);
+          return;
+        }
 
         setRooms(res ?? []);
       } catch (err) {
-        console.error(err);
+        showError(err, "Erro ao carregar salas");
       }
     };
 
@@ -54,15 +56,21 @@ export default function Home() {
         (user as { id?: string })?.id ?? (user as unknown as string);
 
       const res = await createRoom(userId, roomName);
-      if (res?.error) return setError(res.error);
+      if (res?.error) {
+        setError(res.error);
+        showError(res.error);
+        return;
+      }
 
       const updated = await getRooms(userId);
       setRooms(updated ?? []);
 
       setShowModal(false);
       setRoomName("");
-    } catch (err: any) {
-      setError(err.message || "Erro ao criar sala");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Erro ao criar sala";
+      setError(message);
+      showError(message);
     } finally {
       setCreating(false);
     }
@@ -110,12 +118,24 @@ export default function Home() {
                     className="text-left px-2 py-1 rounded hover:bg-gray-100 cursor-pointer text-red-600"
                     onClick={async () => {
                       setOpenTooltip(null);
-                      await deleteRoom(room.id);
-                      const userId =
-                        (user as { id?: string })?.id ??
-                        (user as unknown as string);
-                      const updated = await getRooms(userId);
-                      setRooms(updated ?? []);
+                      try {
+                        const deleted = await deleteRoom(room.id);
+                        if (deleted?.error) {
+                          showError(deleted.error);
+                          return;
+                        }
+                        const userId =
+                          (user as { id?: string })?.id ??
+                          (user as unknown as string);
+                        const updated = await getRooms(userId);
+                        if (updated?.error) {
+                          showError(updated.error);
+                          return;
+                        }
+                        setRooms(updated ?? []);
+                      } catch (err) {
+                        showError(err, "Erro ao remover sala");
+                      }
                     }}
                   >
                     Remover sala
