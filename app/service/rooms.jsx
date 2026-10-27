@@ -199,55 +199,14 @@ export async function updateRoomSettings(roomId, data) {
 // mesma lista aceita pelo backend
 export const ROOM_EMOJIS = ["😂", "❤️", "👍", "👏", "🎉", "😮", "😢", "🔥"];
 
-export async function createEmojiSession(roomId, playerId) {
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/rooms/${roomId}/emoji-sessions`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ playerId }),
-      },
-    );
-    const data = await res.json().catch(() => null);
-    if (!res.ok) {
-      return {
-        error: data?.message ?? `Erro ao iniciar envio de emojis (${res.status})`,
-        status: res.status,
-      };
-    }
-    return data;
-  } catch (err) {
-    return { error: String(err) };
-  }
-}
-
-export async function getEmojiSession(roomId, sessionId) {
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/rooms/${roomId}/emoji-sessions/${sessionId}`,
-    );
-    const data = await res.json().catch(() => null);
-    if (!res.ok) {
-      return {
-        error: data?.message ?? `Erro ao buscar sessão de emojis (${res.status})`,
-        status: res.status,
-      };
-    }
-    return data;
-  } catch (err) {
-    return { error: String(err) };
-  }
-}
-
-export async function sendEmoji(roomId, sessionId, emoji) {
+export async function sendEmoji(roomId, playerId, emoji) {
   try {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/rooms/${roomId}/emojis`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId, emoji }),
+        body: JSON.stringify({ playerId, emoji }),
       },
     );
     const data = await res.json().catch(() => null);
@@ -255,6 +214,7 @@ export async function sendEmoji(roomId, sessionId, emoji) {
       return {
         error: data?.message ?? `Erro ao enviar emoji (${res.status})`,
         status: res.status,
+        retryAfter: data?.retryAfter,
       };
     }
     return data;

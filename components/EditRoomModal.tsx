@@ -11,6 +11,7 @@ type RoomSettings = {
   PlayersCanEditName: boolean;
   EmojisEnabled: boolean;
   EmojiLimit: number;
+  EmojiCooldown: number;
 };
 
 type EditRoomModalProps = {
@@ -26,6 +27,7 @@ const DEFAULT_SETTINGS: RoomSettings = {
   PlayersCanEditName: false,
   EmojisEnabled: false,
   EmojiLimit: 10,
+  EmojiCooldown: 5,
 };
 
 export default function EditRoomModal({
@@ -60,6 +62,7 @@ export default function EditRoomModal({
               res.PlayersCanEditName ?? DEFAULT_SETTINGS.PlayersCanEditName,
             EmojisEnabled: res.EmojisEnabled ?? DEFAULT_SETTINGS.EmojisEnabled,
             EmojiLimit: res.EmojiLimit ?? DEFAULT_SETTINGS.EmojiLimit,
+            EmojiCooldown: res.EmojiCooldown ?? DEFAULT_SETTINGS.EmojiCooldown,
           });
         }
       } catch (err) {
@@ -77,13 +80,13 @@ export default function EditRoomModal({
   const set = <K extends keyof RoomSettings>(key: K, value: RoomSettings[K]) =>
     setSettings((prev) => ({ ...prev, [key]: value }));
 
-  const handleLimitChange =
-    (key: "PlayerLimit" | "EmojiLimit") =>
+  const handleNumberChange =
+    (key: "PlayerLimit" | "EmojiLimit" | "EmojiCooldown", max: number) =>
     (e: React.ChangeEvent<HTMLInputElement>) => {
       let value = Number(e.target.value);
       if (isNaN(value)) value = 1;
       if (value < 1) value = 1;
-      if (value > 999) value = 999;
+      if (value > max) value = max;
       set(key, value);
     };
 
@@ -137,7 +140,7 @@ export default function EditRoomModal({
                 min={1}
                 max={999}
                 value={settings.PlayerLimit}
-                onChange={handleLimitChange("PlayerLimit")}
+                onChange={handleNumberChange("PlayerLimit", 999)}
                 className="w-full px-3 py-2 rounded-lg border outline-none focus:border-indigo-400 text-center font-semibold"
               />
             </div>
@@ -181,16 +184,30 @@ export default function EditRoomModal({
             {settings.EmojisEnabled && (
               <div>
                 <label className="block text-sm font-medium text-gray-600 mb-1">
-                  Limite de emojis por acesso remoto
+                  Limite de emojis por jogador
                 </label>
-                <input
-                  type="number"
-                  min={1}
-                  max={999}
-                  value={settings.EmojiLimit}
-                  onChange={handleLimitChange("EmojiLimit")}
-                  className="w-full px-3 py-2 rounded-lg border outline-none focus:border-indigo-400 text-center font-semibold"
-                />
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <input
+                    type="number"
+                    min={1}
+                    max={999}
+                    value={settings.EmojiLimit}
+                    onChange={handleNumberChange("EmojiLimit", 999)}
+                    aria-label="Quantidade de emojis"
+                    className="w-20 px-3 py-2 rounded-lg border outline-none focus:border-indigo-400 text-center font-semibold"
+                  />
+                  <span>{settings.EmojiLimit === 1 ? "emoji" : "emojis"} a cada</span>
+                  <input
+                    type="number"
+                    min={1}
+                    max={3600}
+                    value={settings.EmojiCooldown}
+                    onChange={handleNumberChange("EmojiCooldown", 3600)}
+                    aria-label="Intervalo em segundos"
+                    className="w-20 px-3 py-2 rounded-lg border outline-none focus:border-indigo-400 text-center font-semibold"
+                  />
+                  <span>{settings.EmojiCooldown === 1 ? "segundo" : "segundos"}</span>
+                </div>
               </div>
             )}
           </div>

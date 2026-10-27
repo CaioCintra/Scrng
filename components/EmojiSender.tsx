@@ -1,101 +1,48 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import {
-  ROOM_EMOJIS,
-  createEmojiSession,
-  getEmojiSession,
-  sendEmoji,
-} from "@/app/service/rooms";
+import React, { useEffect, useRef, useState } from "react";
+import { ROOM_EMOJIS, sendEmoji } from "@/app/service/rooms";
 
 type EmojiSenderProps = {
   roomId: string;
   playerId: string;
 };
 
-// a sessão fica guardada na aba, assim recarregar a página não zera o limite
-const storageKey = (playerId: string) => `scrng_emoji_session_${playerId}`;
-
-function readStoredSession(playerId: string) {
-  try {
-    return sessionStorage.getItem(storageKey(playerId));
-  } catch {
-    return null;
-  }
-}
-
-function storeSession(playerId: string, sessionId: string) {
-  try {
-    sessionStorage.setItem(storageKey(playerId), sessionId);
-  } catch {
-    // ignora falhas de armazenamento
-  }
-}
-
 export default function EmojiSender({ roomId, playerId }: EmojiSenderProps) {
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const [remaining, setRemaining] = useState<number | null>(null);
   const [disabled, setDisabled] = useState(false);
-  const [sending, setSending] = useState(false);
+  const [waiting, setWaiting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const waitTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
-    let cancelled = false;
-
-    const start = async () => {
-      setError(null);
-      const stored = readStoredSession(playerId);
-      if (stored) {
-        const res = await getEmojiSession(roomId, stored);
-        if (cancelled) return;
-        if (!res?.error) {
-          setSessionId(stored);
-          setRemaining(res.remaining);
-          setDisabled(!res.enabled);
-          return;
-        }
-        // sessão expirada ou de outra sala: cria uma nova
-      }
-
-      const res = await createEmojiSession(roomId, playerId);
-      if (cancelled) return;
-      if (res?.error) {
-        if (res.status === 403) setDisabled(true);
-        else setError(res.error);
-        return;
-      }
-      storeSession(playerId, res.sessionId);
-      setSessionId(res.sessionId);
-      setRemaining(res.remaining);
-    };
-
-    start();
     return () => {
-      cancelled = true;
+      if (waitTimeoutRef.current) clearTimeout(waitTimeoutRef.current);
     };
-  }, [roomId, playerId]);
+  }, []);
 
   const handleSend = async (emoji: string) => {
-    if (!sessionId || sending || !remaining) return;
-    setSending(true);
+    if (waiting) return;
     setError(null);
-    try {
-      const res = await sendEmoji(roomId, sessionId, emoji);
-      if (res?.error) {
-        if (res.status === 429) setRemaining(0);
-        else if (res.status === 403) setDisabled(true);
-        else setError(res.error);
-        return;
-      }
-      setRemaining(res.remaining);
-    } finally {
-      setSending(false);
+    const res = await sendEmoji(roomId, playerId, emoji);
+    if (!res?.error) return;
+
+    if (res.status === 429) {
+      // libera o envio quando o intervalo da sala termina
+      setWaiting(true);
+      if (waitTimeoutRef.current) clearTimeout(waitTimeoutRef.current);
+      waitTimeoutRef.current = setTimeout(
+        () => setWaiting(false),
+        (res.retryAfter ?? 1) * 1000,
+      );
+    } else if (res.status === 403) {
+      setDisabled(true);
+    } else {
+      setError(res.error);
     }
   };
 
   if (disabled) return null;
-
-  const exhausted = remaining === 0;
 
   return (
     <div className="mt-2 w-full">
@@ -109,7 +56,7 @@ export default function EmojiSender({ roomId, playerId }: EmojiSenderProps) {
             key={emoji}
             type="button"
             onClick={() => handleSend(emoji)}
-            disabled={!sessionId || sending || exhausted}
+            disabled={waiting}
             className="cursor-pointer h-12 rounded-xl bg-gray-100 text-2xl hover:bg-gray-200 active:scale-95 transition disabled:opacity-40 disabled:cursor-not-allowed"
             aria-label={`Enviar ${emoji}`}
           >
@@ -118,13 +65,11 @@ export default function EmojiSender({ roomId, playerId }: EmojiSenderProps) {
         ))}
       </div>
 
-      <p className="mt-2 text-xs text-gray-500">
-        {remaining === null
-          ? "Carregando..."
-          : exhausted
-            ? "Você atingiu o limite de emojis."
-            : `${remaining} ${remaining === 1 ? "emoji restante" : "emojis restantes"}`}
-      </p>
+      {waiting && (
+        <p className="mt-2 text-xs text-amber-600">
+          Aguarde um pouco para enviar mais emojis.
+        </p>
+      )}
 
       {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
     </div>
