@@ -9,6 +9,8 @@ type RoomSettings = {
   PlayerLimit: number;
   PlayersCanEditPoints: boolean;
   PlayersCanEditName: boolean;
+  EmojisEnabled: boolean;
+  EmojiLimit: number;
 };
 
 type EditRoomModalProps = {
@@ -22,6 +24,8 @@ const DEFAULT_SETTINGS: RoomSettings = {
   PlayerLimit: 10,
   PlayersCanEditPoints: false,
   PlayersCanEditName: false,
+  EmojisEnabled: false,
+  EmojiLimit: 10,
 };
 
 export default function EditRoomModal({
@@ -54,6 +58,8 @@ export default function EditRoomModal({
               res.PlayersCanEditPoints ?? DEFAULT_SETTINGS.PlayersCanEditPoints,
             PlayersCanEditName:
               res.PlayersCanEditName ?? DEFAULT_SETTINGS.PlayersCanEditName,
+            EmojisEnabled: res.EmojisEnabled ?? DEFAULT_SETTINGS.EmojisEnabled,
+            EmojiLimit: res.EmojiLimit ?? DEFAULT_SETTINGS.EmojiLimit,
           });
         }
       } catch (err) {
@@ -71,13 +77,15 @@ export default function EditRoomModal({
   const set = <K extends keyof RoomSettings>(key: K, value: RoomSettings[K]) =>
     setSettings((prev) => ({ ...prev, [key]: value }));
 
-  const handleLimitChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = Number(e.target.value);
-    if (isNaN(value)) value = 1;
-    if (value < 1) value = 1;
-    if (value > 999) value = 999;
-    set("PlayerLimit", value);
-  };
+  const handleLimitChange =
+    (key: "PlayerLimit" | "EmojiLimit") =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      let value = Number(e.target.value);
+      if (isNaN(value)) value = 1;
+      if (value < 1) value = 1;
+      if (value > 999) value = 999;
+      set(key, value);
+    };
 
   const handleSave = async () => {
     setSaving(true);
@@ -129,7 +137,7 @@ export default function EditRoomModal({
                 min={1}
                 max={999}
                 value={settings.PlayerLimit}
-                onChange={handleLimitChange}
+                onChange={handleLimitChange("PlayerLimit")}
                 className="w-full px-3 py-2 rounded-lg border outline-none focus:border-indigo-400 text-center font-semibold"
               />
             </div>
@@ -157,6 +165,34 @@ export default function EditRoomModal({
                 className="w-5 h-5 accent-indigo-600 cursor-pointer"
               />
             </label>
+
+            <label className="flex items-center justify-between cursor-pointer">
+              <span className="text-sm font-medium text-gray-600">
+                Jogadores podem enviar emojis
+              </span>
+              <input
+                type="checkbox"
+                checked={settings.EmojisEnabled}
+                onChange={(e) => set("EmojisEnabled", e.target.checked)}
+                className="w-5 h-5 accent-indigo-600 cursor-pointer"
+              />
+            </label>
+
+            {settings.EmojisEnabled && (
+              <div>
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Limite de emojis por acesso remoto
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  max={999}
+                  value={settings.EmojiLimit}
+                  onChange={handleLimitChange("EmojiLimit")}
+                  className="w-full px-3 py-2 rounded-lg border outline-none focus:border-indigo-400 text-center font-semibold"
+                />
+              </div>
+            )}
           </div>
         )}
 

@@ -12,12 +12,14 @@ import { LuAArrowDown, LuArrowUp10 } from "react-icons/lu";
 import { SlOptionsVertical } from "react-icons/sl";
 import { FiSettings } from "react-icons/fi";
 import EditRoomModal from "@/components/EditRoomModal";
+import FloatingEmojis from "@/components/FloatingEmojis";
 
 type Player = { id: string; name: string; points: number; avatar?: string };
 type RoomType = {
   id?: string;
   name?: string;
   players?: Player[];
+  EmojisEnabled?: boolean;
 } | null;
 
 const AVATAR_STYLE = "adventurer";
@@ -411,6 +413,7 @@ export default function RoomPage() {
         onClose={() => setSettingsOpen(false)}
         onUpdated={refreshRoom}
       />
+      <FloatingEmojis roomId={id!} enabled={!!room?.EmojisEnabled} />
     </>
   );
 }

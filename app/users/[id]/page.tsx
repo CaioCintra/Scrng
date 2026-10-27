@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { getPlayer, updatePlayer, getRoomSettings } from "../../service/rooms";
 import { addPoints } from "../../service/players";
 import EditProfileModal from "@/components/EditProfileModal";
+import EmojiSender from "@/components/EmojiSender";
 import { FiEdit2 } from "react-icons/fi";
 import { IoMdAdd, IoMdRemove } from "react-icons/io";
 
@@ -21,6 +22,7 @@ type RoomSettings = {
   PlayerLimit: number;
   PlayersCanEditPoints: boolean;
   PlayersCanEditName: boolean;
+  EmojisEnabled: boolean;
 };
 
 const DEFAULT_SETTINGS: RoomSettings = {
@@ -28,6 +30,7 @@ const DEFAULT_SETTINGS: RoomSettings = {
   // por padrão o jogador NÃO pode editar nada
   PlayersCanEditPoints: false,
   PlayersCanEditName: false,
+  EmojisEnabled: false,
 };
 
 const AVATAR_STYLE = "adventurer";
@@ -84,6 +87,7 @@ export default function UserPage() {
                 s.PlayersCanEditPoints ?? DEFAULT_SETTINGS.PlayersCanEditPoints,
               PlayersCanEditName:
                 s.PlayersCanEditName ?? DEFAULT_SETTINGS.PlayersCanEditName,
+              EmojisEnabled: s.EmojisEnabled ?? DEFAULT_SETTINGS.EmojisEnabled,
             });
           }
           // se falhar ao buscar as regras, mantém o padrão (tudo bloqueado)
@@ -217,6 +221,11 @@ export default function UserPage() {
                 </div>
               )}
             </div>
+
+            {/* Envio de emojis para a tela da sala: só aparece se a sala permitir */}
+            {settings.EmojisEnabled && player.roomId && (
+              <EmojiSender roomId={player.roomId} playerId={player.id} />
+            )}
           </div>
         ) : (
           <div className="text-center">
