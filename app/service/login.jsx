@@ -1,3 +1,5 @@
+import { translateError } from "./errors";
+
 export const apiConst = {
   api: process.env.NEXT_PUBLIC_API_URL,
 };
@@ -17,10 +19,7 @@ export const authUser = async (name, password) => {
     }
 
     return {
-      error:
-        data?.error ??
-        data?.message ??
-        `Request failed with status ${response.status}`,
+      error: translateError(data?.error ?? data?.message, response.status),
     };
   } catch (error) {
     console.error("Error during authentication:", error);
@@ -41,10 +40,7 @@ export const createUser = async (name, password) => {
       return data;
     }
     return {
-      error:
-        data?.error ??
-        data?.message ??
-        `Request failed with status ${response.status}`,
+      error: translateError(data?.error ?? data?.message, response.status),
     };
   } catch (error) {
     console.error("Error creating user:", error);

@@ -1,10 +1,12 @@
 "use client";
 
 import { addPlayer } from "@/app/service/rooms";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { IoMdAdd } from "react-icons/io";
 import { useGlobal } from "@/context/GlobalContext";
+import FormError from "./FormError";
+import Modal from "./Modal";
+import Spinner from "./Spinner";
 
 export default function PlayerAdd({
   roomId,
@@ -13,68 +15,90 @@ export default function PlayerAdd({
   roomId: undefined | string;
   onUpdated: () => void;
 }) {
-  const router = useRouter();
   const [name, setName] = useState("");
   const [adding, setAdding] = useState(false);
-  const { showError } = useGlobal();
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { showError, showSuccess } = useGlobal();
+
+  const close = () => {
+    setAdding(false);
+    setName("");
+    setError(null);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const playerName = name.trim();
+    if (!playerName) return setError("Digite o nome do jogador.");
+
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await addPlayer(roomId, playerName);
+      if (res?.error) {
+        setError(res.error);
+        return;
+      }
+      onUpdated();
+      showSuccess(`${playerName} entrou na sala!`);
+      // mantém o modal aberto para adicionar vários jogadores em sequência
+      setName("");
+    } catch (err) {
+      showError(err, "Erro ao adicionar jogador");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <>
       <button
-        onClick={async () => {
-          setAdding(true);
-        }}
+        onClick={() => setAdding(true)}
         className="mt-4 px-4 w-16 h-16 shadow shadow-black fixed bottom-10 right-10 py-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 transition text-2xl hover:text-4xl items-center justify-center flex hover:-translate-y-1 hover:scale-110 cursor-pointer"
+        aria-label="Adicionar jogador"
+        title="Adicionar jogador"
       >
         <IoMdAdd />
       </button>
-      {adding && (
-        <div className="fixed inset-0 text-black   bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm">
-            <h2 className="text-2xl font-semibold mb-4">Adicionar Jogador</h2>
 
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded mb-4"
-              placeholder="Nome do jogador"
-            />
+      <Modal open={adding} onClose={close} title="Adicionar jogador" locked={saving}>
+        <form onSubmit={handleSubmit}>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+            placeholder="Nome do jogador"
+            maxLength={40}
+            autoFocus
+          />
 
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setAdding(false)}
-                className="cursor-pointer px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 transition"
-              >
-                Cancelar
-              </button>
-
-              <button
-                onClick={async () => {
-                  if (name.trim() === "") return;
-                  try {
-                    const res = await addPlayer(roomId, name.trim());
-                    if (res?.error) {
-                      showError(res.error);
-                      return;
-                    }
-                  } catch (err) {
-                    showError(err, "Erro ao adicionar jogador");
-                    return;
-                  }
-                  setAdding(false);
-                  setName("");
-                  onUpdated();
-                  router.refresh();
-                }}
-                className="cursor-pointer px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition"
-              >
-                Adicionar
-              </button>
-            </div>
+          <div className="mt-3">
+            <FormError message={error} />
           </div>
-        </div>
-      )}
+
+          <div className="flex gap-3 mt-4">
+            <button
+              type="button"
+              onClick={close}
+              disabled={saving}
+              className="cursor-pointer flex-1 px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition disabled:opacity-50"
+            >
+              Fechar
+            </button>
+
+            <button
+              type="submit"
+              disabled={saving}
+              className="cursor-pointer flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition disabled:opacity-60 flex items-center justify-center gap-2"
+            >
+              {saving && <Spinner />}
+              {saving ? "Adicionando..." : "Adicionar"}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </>
   );
 }

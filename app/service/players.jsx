@@ -1,3 +1,5 @@
+import { translateError } from "./errors";
+
 const getHost = () => {
   if (typeof window === "undefined") {
     return process.env.NEXT_PUBLIC_API_URL ? "producao" : "validacao";
@@ -38,10 +40,7 @@ export const addPoints = async (roomId, playerId, points) => {
     if (response.ok) return data;
 
     return {
-      error:
-        data?.error ??
-        data?.message ??
-        `Request failed with status ${response.status}`,
+      error: translateError(data?.error ?? data?.message, response.status),
     };
   } catch (error) {
     console.error("Error adding points:", error);
@@ -63,10 +62,7 @@ export const addRoomPoints = async (roomId, points) => {
     if (response.ok) return data;
 
     return {
-      error:
-        data?.error ??
-        data?.message ??
-        `Request failed with status ${response.status}`,
+      error: translateError(data?.error ?? data?.message, response.status),
     };
   } catch (error) {
     console.error("Error adding points:", error);
@@ -85,10 +81,7 @@ export const removePlayer = async (roomId, playerId) => {
     const data = await response.json().catch(() => null);
     if (response.ok) return data;
     return {
-      error:
-        data?.error ??
-        data?.message ??
-        `Request failed with status ${response.status}`,
+      error: translateError(data?.error ?? data?.message, response.status),
     };
   } catch (error) {
     console.error("Error removing player:", error);

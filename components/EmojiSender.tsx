@@ -12,6 +12,8 @@ export default function EmojiSender({ roomId, playerId }: EmojiSenderProps) {
   const [disabled, setDisabled] = useState(false);
   const [waiting, setWaiting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // contador para reiniciar a animação mesmo tocando no mesmo emoji
+  const [popped, setPopped] = useState<{ emoji: string; n: number } | null>(null);
 
   const waitTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -24,6 +26,7 @@ export default function EmojiSender({ roomId, playerId }: EmojiSenderProps) {
   const handleSend = async (emoji: string) => {
     if (waiting) return;
     setError(null);
+    setPopped((prev) => ({ emoji, n: (prev?.n ?? 0) + 1 }));
     const res = await sendEmoji(roomId, playerId, emoji);
     if (!res?.error) return;
 
@@ -53,11 +56,13 @@ export default function EmojiSender({ roomId, playerId }: EmojiSenderProps) {
       <div className="grid grid-cols-4 gap-2">
         {ROOM_EMOJIS.map((emoji) => (
           <button
-            key={emoji}
+            key={popped?.emoji === emoji ? `${emoji}-${popped.n}` : emoji}
             type="button"
             onClick={() => handleSend(emoji)}
             disabled={waiting}
-            className="cursor-pointer h-12 rounded-xl bg-gray-100 text-2xl hover:bg-gray-200 active:scale-95 transition disabled:opacity-40 disabled:cursor-not-allowed"
+            className={`cursor-pointer h-12 rounded-xl bg-gray-100 text-2xl hover:bg-indigo-50 hover:shadow-sm transition disabled:opacity-40 disabled:cursor-not-allowed ${
+              popped?.emoji === emoji ? "animate-emoji-pop" : ""
+            }`}
             aria-label={`Enviar ${emoji}`}
           >
             {emoji}
@@ -66,7 +71,10 @@ export default function EmojiSender({ roomId, playerId }: EmojiSenderProps) {
       </div>
 
       {waiting && (
-        <p className="mt-2 text-xs text-amber-600">
+        <p
+          role="status"
+          className="animate-fade-in mt-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-700"
+        >
           Aguarde um pouco para enviar mais emojis.
         </p>
       )}

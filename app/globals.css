@@ -48,3 +48,73 @@ body {
   opacity: 0;
   animation: emoji-float 4s ease-out forwards;
 }
+
+/* entrada de modais, menus e avisos */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* resposta visual ao tocar em um emoji */
+@keyframes emoji-pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 150ms ease-out;
+}
+
+.animate-pop-in {
+  animation: pop-in 180ms ease-out;
+}
+
+.animate-toast-in {
+  animation: toast-in 200ms ease-out;
+}
+
+.animate-emoji-pop {
+  animation: emoji-pop 300ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .animate-pop-in,
+  .animate-toast-in,
+  .animate-emoji-pop {
+    animation: none;
+  }
+}

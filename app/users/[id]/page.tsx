@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { getPlayer, updatePlayer, getRoomSettings } from "../../service/rooms";
 import { addPoints } from "../../service/players";
 import EditProfileModal from "@/components/EditProfileModal";
 import EmojiSender from "@/components/EmojiSender";
+import { Skeleton } from "@/components/Spinner";
+import { useGlobal } from "@/context/GlobalContext";
 import { FiEdit2 } from "react-icons/fi";
 import { IoMdAdd, IoMdRemove } from "react-icons/io";
 
@@ -33,6 +35,9 @@ const DEFAULT_SETTINGS: RoomSettings = {
   EmojisEnabled: false,
 };
 
+// intervalo de atualização dos pontos do jogador (ms)
+const POLL_INTERVAL = 5000;
+
 const AVATAR_STYLE = "adventurer";
 function avatarUrl(seed: string) {
   return `https://api.dicebear.com/9.x/${AVATAR_STYLE}/svg?seed=${encodeURIComponent(
@@ -42,13 +47,13 @@ function avatarUrl(seed: string) {
 
 export default function UserPage() {
   const params = useParams();
-  const router = useRouter();
   const [player, setPlayer] = useState<Player>(null);
   const [settings, setSettings] = useState<RoomSettings>(DEFAULT_SETTINGS);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [pointsStep, setPointsStep] = useState(10);
+  const { showError, showSuccess } = useGlobal();
 
   const id = params?.id as string | undefined;
 
@@ -101,6 +106,13 @@ export default function UserPage() {
     load();
   }, [id]);
 
+  // mantém os pontos sincronizados com o que o dono da sala altera
+  useEffect(() => {
+    if (!id || !player?.id) return;
+    const interval = setInterval(refreshPlayer, POLL_INTERVAL);
+    return () => clearInterval(interval);
+  }, [id, player?.id, refreshPlayer]);
+
   const initials = (player?.name || "")
     .split(" ")
     .map((s) => s[0])
@@ -118,15 +130,24 @@ export default function UserPage() {
 
     const res = await updatePlayer(player.id, payload);
     if (res?.error) {
-      setError(res.error);
-      return;
+      showError(res.error);
+      return false;
     }
     setPlayer((prev) => (prev ? { ...prev, ...payload } : prev));
+    showSuccess("Perfil atualizado!");
   };
 
   const handleAddPoints = async (delta: number) => {
-    if (!player?.id || !player.roomId || !settings.PlayersCanEditPoints) return;
-    await addPoints(player.roomId, player.id, delta);
+    if (!delta || !player?.id || !player.roomId || !settings.PlayersCanEditPoints)
+      return;
+    // atualiza na hora e só desfaz se a API falhar
+    setPlayer((prev) => (prev ? { ...prev, points: prev.points + delta } : prev));
+    try {
+      const res = await addPoints(player.roomId, player.id, delta);
+      if (res?.error) showError(res.error);
+    } catch (err) {
+      showError(err, "Erro ao atualizar pontuação");
+    }
     refreshPlayer();
   };
 
@@ -134,21 +155,28 @@ export default function UserPage() {
     <div className="w-full flex items-center justify-center p-4 sm:p-6 md:p-8 bg-[#0A0A0A] text-black">
       <div className="w-full max-w-sm sm:max-w-md p-5 sm:p-8 bg-white rounded-2xl shadow-lg">
         {loading ? (
-          <p className="text-center text-gray-500">Carregando jogador...</p>
+          <div className="flex flex-col items-center gap-4" aria-busy="true">
+            <Skeleton className="w-24 h-24 sm:w-32 sm:h-32 rounded-full" />
+            <Skeleton className="h-8 w-2/3" />
+            <Skeleton className="h-4 w-1/3" />
+            <Skeleton className="h-20 w-full mt-2 rounded-2xl" />
+          </div>
         ) : error ? (
-          <div className="text-center">
-            <p className="text-red-600 wrap-break-word">Erro: {error}</p>
+          <div className="text-center py-4">
+            <p className="text-lg font-semibold">Não foi possível abrir o placar</p>
+            <p className="text-sm text-gray-500 mt-1 wrap-break-word">{error}</p>
             <button
-              onClick={() => router.back()}
-              className="mt-4 px-4 py-2 rounded bg-slate-200 hover:bg-slate-300 transition cursor-pointer"
+              onClick={() => window.location.reload()}
+              className="mt-5 px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition cursor-pointer"
             >
-              Voltar
+              Tentar novamente
             </button>
           </div>
         ) : player ? (
-          <div className="flex flex-col items-center text-center gap-4">
+          <div className="animate-fade-in flex flex-col items-center text-center gap-4">
             <div className="relative">
               {player.avatar ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={avatarUrl(player.avatar)}
                   alt={player.name}
@@ -162,8 +190,9 @@ export default function UserPage() {
 
               <button
                 onClick={() => setEditOpen(true)}
-                className="cursor-pointer absolute -bottom-1 -right-1 p-2 rounded-full bg-indigo-600 text-white shadow hover:bg-indigo-700 transition"
+                className="cursor-pointer absolute -bottom-1 -right-1 p-2 rounded-full bg-indigo-600 text-white shadow ring-4 ring-white hover:bg-indigo-700 hover:scale-110 transition"
                 aria-label="Editar perfil"
+                title="Editar perfil"
               >
                 <FiEdit2 size={14} />
               </button>
@@ -183,8 +212,10 @@ export default function UserPage() {
               <p className="text-xs sm:text-sm uppercase tracking-wide text-gray-400 mb-1">
                 Pontuação
               </p>
-              <div className="px-6 py-4 rounded-2xl bg-indigo-50 text-indigo-700 text-4xl sm:text-5xl font-extrabold">
-                {player.points}
+              <div className="px-6 py-4 rounded-2xl bg-indigo-50 text-indigo-700 text-4xl sm:text-5xl font-extrabold tabular-nums">
+                <span key={player.points} className="animate-pop-in inline-block">
+                  {player.points}
+                </span>
               </div>
 
               {/* Controles de pontos: só aparecem se a sala permitir */}
@@ -192,7 +223,8 @@ export default function UserPage() {
                 <div className="mt-4 flex items-center justify-center gap-3">
                   <button
                     onClick={() => handleAddPoints(-pointsStep)}
-                    className="cursor-pointer h-10 w-10 rounded-full bg-red-400 text-red-950 hover:bg-red-600 transition flex items-center justify-center"
+                    aria-label={`Remover ${pointsStep} pontos`}
+                    className="cursor-pointer h-10 w-10 rounded-full bg-red-400 text-red-950 hover:bg-red-600 active:scale-90 transition flex items-center justify-center"
                   >
                     <IoMdRemove />
                   </button>
@@ -209,12 +241,14 @@ export default function UserPage() {
                       if (value > 9999) value = 9999;
                       setPointsStep(value);
                     }}
-                    className="w-20 px-2 py-1 rounded-full text-center font-bold bg-gray-100 focus:bg-gray-200 outline-none"
+                    aria-label="Quantidade de pontos"
+                    className="w-20 px-2 py-1 rounded-full text-center font-bold bg-gray-100 focus:bg-gray-200 focus:ring-2 focus:ring-indigo-200 outline-none transition"
                   />
 
                   <button
                     onClick={() => handleAddPoints(pointsStep)}
-                    className="cursor-pointer h-10 w-10 rounded-full bg-green-400 text-green-950 hover:bg-green-600 transition flex items-center justify-center"
+                    aria-label={`Adicionar ${pointsStep} pontos`}
+                    className="cursor-pointer h-10 w-10 rounded-full bg-green-400 text-green-950 hover:bg-green-600 active:scale-90 transition flex items-center justify-center"
                   >
                     <IoMdAdd />
                   </button>
@@ -228,14 +262,11 @@ export default function UserPage() {
             )}
           </div>
         ) : (
-          <div className="text-center">
-            <p>Nenhum jogador encontrado.</p>
-            <button
-              onClick={() => router.back()}
-              className="mt-4 px-4 py-2 rounded bg-slate-200 hover:bg-slate-300 transition cursor-pointer"
-            >
-              Voltar
-            </button>
+          <div className="text-center py-4">
+            <p className="text-lg font-semibold">Jogador não encontrado</p>
+            <p className="text-sm text-gray-500 mt-1">
+              Ele pode ter sido removido da sala. Peça um novo QR Code ao dono da sala.
+            </p>
           </div>
         )}
       </div>

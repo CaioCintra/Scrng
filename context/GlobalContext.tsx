@@ -1,11 +1,20 @@
 "use client";
 
 import React, { createContext, useCallback, useContext, useState } from "react";
+import { translateError } from "@/app/service/errors";
+
+export type ToastType = "error" | "success";
+export type ToastDetail = { type: ToastType; message: string };
+
+function dispatchToast(detail: ToastDetail) {
+	window.dispatchEvent(new CustomEvent<ToastDetail>("scrng:toast", { detail }));
+}
 
 type GlobalContextType = {
 	user: unknown | undefined;
 	setUser: (u: unknown) => void;
 	showError: (error: unknown, fallback?: string) => void;
+	showSuccess: (message: string) => void;
 };
 
 const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
@@ -22,7 +31,11 @@ export function GlobalProvider({ children, initialUser }: { children: React.Reac
 					: error instanceof Error
 						? error.message
 						: fallback;
-		window.dispatchEvent(new CustomEvent("scrng:error", { detail: message }));
+		dispatchToast({ type: "error", message: translateError(message) });
+	}, []);
+
+	const showSuccess = useCallback((message: string) => {
+		dispatchToast({ type: "success", message });
 	}, []);
 
 	const setUser = (u: unknown) => {
@@ -42,7 +55,7 @@ export function GlobalProvider({ children, initialUser }: { children: React.Reac
 		}
 	};
 
-	return <GlobalContext.Provider value={{ user, setUser, showError }}>{children}</GlobalContext.Provider>;
+	return <GlobalContext.Provider value={{ user, setUser, showError, showSuccess }}>{children}</GlobalContext.Provider>;
 }
 
 export function useGlobal() {

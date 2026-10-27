@@ -1,3 +1,5 @@
+import { translateError } from "./errors";
+
 const getHost = () => {
   if (typeof window === "undefined") {
     return process.env.NEXT_PUBLIC_API_URL ? "producao" : "validacao";
@@ -36,10 +38,7 @@ export const getRooms = async (user) => {
       return data;
     }
     return {
-      error:
-        data?.error ??
-        data?.message ??
-        `Request failed with status ${response.status}`,
+      error: translateError(data?.error ?? data?.message, response.status),
     };
   } catch (error) {
     console.error("Error fetching rooms:", error);
@@ -58,10 +57,7 @@ export const getRoom = async (roomId) => {
     if (response.ok) return data;
 
     return {
-      error:
-        data?.error ??
-        data?.message ??
-        `Request failed with status ${response.status}`,
+      error: translateError(data?.error ?? data?.message, response.status),
     };
   } catch (error) {
     console.error("Error fetching room:", error);
@@ -80,10 +76,7 @@ export const createRoom = async (user, name) => {
     if (response.ok) return data;
 
     return {
-      error:
-        data?.error ??
-        data?.message ??
-        `Request failed with status ${response.status}`,
+      error: translateError(data?.error ?? data?.message, response.status),
     };
   } catch (error) {
     console.error("Error creating room:", error);
@@ -100,10 +93,7 @@ export const deleteRoom = async (roomId) => {
     if (response.ok) return data;
 
     return {
-      error:
-        data?.error ??
-        data?.message ??
-        `Request failed with status ${response.status}`,
+      error: translateError(data?.error ?? data?.message, response.status),
     };
   } catch (error) {
     console.error("Error deleting room:", error);
@@ -121,10 +111,7 @@ export const addPlayer = async (roomId, playerName) => {
     const data = await response.json().catch(() => null);
     if (response.ok) return data;
     return {
-      error:
-        data?.error ??
-        data?.message ??
-        `Request failed with status ${response.status}`,
+      error: translateError(data?.error ?? data?.message, response.status),
     };
   } catch (error) {
     console.error("Error adding player:", error);
@@ -137,11 +124,12 @@ export async function getPlayer(id) {
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/players/${id}`);
     if (!res.ok) {
-      return { error: `Erro ao buscar jogador (${res.status})` };
+      const data = await res.json().catch(() => null);
+      return { error: translateError(data?.message, res.status) };
     }
     return await res.json();
   } catch (err) {
-    return { error: String(err) };
+    return { error: translateError(String(err)) };
   }
 }
 
@@ -156,11 +144,12 @@ export async function updatePlayer(id, data) {
       },
     );
     if (!res.ok) {
-      return { error: `Erro ao atualizar jogador (${res.status})` };
+      const data = await res.json().catch(() => null);
+      return { error: translateError(data?.message, res.status) };
     }
     return await res.json().catch(() => ({}));
   } catch (err) {
-    return { error: String(err) };
+    return { error: translateError(String(err)) };
   }
 }
 export async function getRoomSettings(roomId) {
@@ -169,11 +158,12 @@ export async function getRoomSettings(roomId) {
       `${process.env.NEXT_PUBLIC_API_URL}/rooms/${roomId}/settings`,
     );
     if (!res.ok) {
-      return { error: `Erro ao buscar configurações (${res.status})` };
+      const data = await res.json().catch(() => null);
+      return { error: translateError(data?.message, res.status) };
     }
     return await res.json();
   } catch (err) {
-    return { error: String(err) };
+    return { error: translateError(String(err)) };
   }
 }
 
@@ -188,11 +178,12 @@ export async function updateRoomSettings(roomId, data) {
       },
     );
     if (!res.ok) {
-      return { error: `Erro ao salvar configurações (${res.status})` };
+      const data = await res.json().catch(() => null);
+      return { error: translateError(data?.message, res.status) };
     }
     return await res.json();
   } catch (err) {
-    return { error: String(err) };
+    return { error: translateError(String(err)) };
   }
 }
 
@@ -212,14 +203,14 @@ export async function sendEmoji(roomId, playerId, emoji) {
     const data = await res.json().catch(() => null);
     if (!res.ok) {
       return {
-        error: data?.message ?? `Erro ao enviar emoji (${res.status})`,
+        error: translateError(data?.message, res.status),
         status: res.status,
         retryAfter: data?.retryAfter,
       };
     }
     return data;
   } catch (err) {
-    return { error: String(err) };
+    return { error: translateError(String(err)) };
   }
 }
 
@@ -229,10 +220,11 @@ export async function getRoomEmojis(roomId) {
       `${process.env.NEXT_PUBLIC_API_URL}/rooms/${roomId}/emojis`,
     );
     if (!res.ok) {
-      return { error: `Erro ao buscar emojis (${res.status})` };
+      const data = await res.json().catch(() => null);
+      return { error: translateError(data?.message, res.status) };
     }
     return await res.json();
   } catch (err) {
-    return { error: String(err) };
+    return { error: translateError(String(err)) };
   }
 }
