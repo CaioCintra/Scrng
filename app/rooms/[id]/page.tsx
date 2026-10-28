@@ -16,6 +16,10 @@ import FloatingEmojis from "@/components/FloatingEmojis";
 import DropdownMenu from "@/components/DropdownMenu";
 import ConfirmModal from "@/components/ConfirmModal";
 import { Skeleton } from "@/components/Spinner";
+import AuctionPanel from "@/components/AuctionPanel";
+import AuctionStartModal from "@/components/AuctionStartModal";
+import { useAuction } from "@/hooks/useAuction";
+import { LuGavel } from "react-icons/lu";
 
 type Player = { id: string; name: string; points: number; avatar?: string };
 type RoomType = {
@@ -55,6 +59,13 @@ export default function RoomPage() {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [auctionModalOpen, setAuctionModalOpen] = useState(false);
+  // resultado que o dono já fechou, para não reabrir no próximo polling
+  const [dismissedAuction, setDismissedAuction] = useState<string | null>(null);
+  const { auction, now, applyResponse } = useAuction(user ? id : undefined, {
+    keepResult: true,
+  });
+  const auctionRunning = auction?.status === "RUNNING";
 
   // busca silenciosa, sem mexer no estado de loading (usada no polling)
   const refreshRoom = useCallback(async () => {
@@ -162,6 +173,13 @@ export default function RoomPage() {
     };
   }, [id, user, refreshRoom]);
 
+  // lances reservam e devolvem pontos: atualiza o placar quando o líder muda
+  const auctionLeader = auction?.leaderId;
+  const auctionStatus = auction?.status;
+  useEffect(() => {
+    if (auctionStatus) refreshRoom();
+  }, [auctionLeader, auctionStatus, refreshRoom]);
+
   const sortedPlayers = [...(room?.players ?? [])].sort((a, b) => {
     if (sort === "alpha") return a.name.localeCompare(b.name);
     return b.points - a.points;
@@ -220,6 +238,15 @@ export default function RoomPage() {
                   </h1>
                 </div>
                 <div className="flex gap-3 justify-center md:justify-end">
+                  <button
+                    onClick={() => setAuctionModalOpen(true)}
+                    disabled={auctionRunning}
+                    className="cursor-pointer p-2 rounded border bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    aria-label="Abrir leilão"
+                    title={auctionRunning ? "Leilão em andamento" : "Abrir leilão"}
+                  >
+                    <LuGavel size={18} />
+                  </button>
                   <button
                     onClick={() => setSettingsOpen(true)}
                     className="cursor-pointer p-2 rounded border bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
@@ -495,6 +522,25 @@ export default function RoomPage() {
         onClose={() => setPlayerToRemove(null)}
       />
       <FloatingEmojis roomId={id!} enabled={!!room?.EmojisEnabled} />
+      <AuctionStartModal
+        open={auctionModalOpen}
+        roomId={id!}
+        onClose={() => setAuctionModalOpen(false)}
+        onStarted={applyResponse}
+      />
+      {auction && auction.id !== dismissedAuction && (
+        <AuctionPanel
+          key={auction.id}
+          roomId={id!}
+          auction={auction}
+          now={now}
+          onCancelled={(res, sentAt) => {
+            applyResponse(res, sentAt);
+            setDismissedAuction(auction.id);
+          }}
+          onDismiss={() => setDismissedAuction(auction.id)}
+        />
+      )}
     </>
   );
 }

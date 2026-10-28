@@ -118,3 +118,59 @@ body {
     animation: none;
   }
 }
+
+/* leilão: pulso do timer nos últimos segundos e destaque de novo lance */
+@keyframes timer-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+@keyframes bid-flash {
+  0% {
+    background-color: #fef3c7;
+    transform: scale(1.03);
+  }
+  100% {
+    background-color: transparent;
+    transform: scale(1);
+  }
+}
+
+@keyframes winner-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.6) rotate(-4deg);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.08) rotate(1deg);
+  }
+  100% {
+    transform: scale(1) rotate(0);
+  }
+}
+
+.animate-timer-pulse {
+  animation: timer-pulse 1s ease-in-out infinite;
+}
+
+.animate-bid-flash {
+  animation: bid-flash 900ms ease-out;
+}
+
+.animate-winner-in {
+  animation: winner-in 600ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-timer-pulse,
+  .animate-bid-flash,
+  .animate-winner-in {
+    animation: none;
+  }
+}

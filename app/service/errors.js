@@ -16,6 +16,13 @@ const MESSAGES = {
   "Emojis are disabled in this room": "O envio de emojis está desativado nesta sala.",
   "Emoji limit reached, wait before sending more":
     "Aguarde um pouco para enviar mais emojis.",
+  "Auction not found": "Leilão não encontrado.",
+  "There is already an auction running in this room":
+    "Já existe um leilão em andamento nesta sala.",
+  "This auction has already ended": "Este leilão já foi encerrado.",
+  "You are already winning this auction": "Você já está vencendo este leilão.",
+  "Bid is too low": "Alguém deu um lance maior. Tente um valor mais alto.",
+  "Not enough points for this bid": "Você não tem pontos suficientes para esse lance.",
 };
 
 const NETWORK_ERROR = /failed to fetch|networkerror|load failed|network request failed/i;
