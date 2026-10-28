@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { placeBid } from "@/app/service/auctions";
 import { useAuction, useCountdown, type AuctionResponse } from "@/hooks/useAuction";
 import { LuGavel } from "react-icons/lu";
-import AuctionTimer from "./AuctionTimer";
+import AuctionTimer, { AuctionStartCountdown } from "./AuctionTimer";
 import Confetti from "./Confetti";
 import Spinner from "./Spinner";
 
@@ -37,6 +37,7 @@ export default function AuctionBidder({
 }: AuctionBidderProps) {
   const { auction, now, applyResponse } = useAuction(roomId);
   const remaining = useCountdown(auction?.endsAt, now);
+  const startIn = useCountdown(auction?.startsAt, now);
   const [amount, setAmount] = useState(0);
   const [sending, setSending] = useState(false);
   const [notice, setNotice] = useState<{ type: "error" | "info"; text: string } | null>(null);
@@ -114,11 +115,13 @@ export default function AuctionBidder({
   }
 
   const ending = remaining <= 0;
+  // durante a contagem inicial o jogador já pode preparar o valor do lance
+  const starting = startIn > 0;
   const canAffordMin = points >= minBid;
   const invalid = amount < minBid || amount > points;
 
   const handleBid = async () => {
-    if (sending || isLeader || ending || invalid) return;
+    if (sending || isLeader || starting || ending || invalid) return;
     setSending(true);
     setNotice(null);
     const sentAt = Date.now();
@@ -147,7 +150,11 @@ export default function AuctionBidder({
       {auction.item && <p className="mt-1 text-lg font-bold break-words">{auction.item}</p>}
 
       <div className="mt-3 flex items-center gap-4">
-        <AuctionTimer remaining={remaining} total={auction.durationSeconds} size="sm" />
+        {starting ? (
+          <AuctionStartCountdown remaining={startIn} size="sm" />
+        ) : (
+          <AuctionTimer remaining={remaining} total={auction.durationSeconds} size="sm" />
+        )}
         <div className="min-w-0">
           <p className="text-xs uppercase tracking-wide text-gray-400">
             {auction.currentBid === null ? "Lance inicial" : "Maior lance"}
@@ -159,7 +166,9 @@ export default function AuctionBidder({
             {auction.currentBid ?? auction.startingBid}
           </p>
           <p className="text-sm text-gray-600 truncate">
-            {auction.currentBid === null
+            {starting
+              ? "Prepare seu lance!"
+              : auction.currentBid === null
               ? "Seja o primeiro a dar lance!"
               : isLeader
                 ? "Você está vencendo!"
@@ -218,11 +227,15 @@ export default function AuctionBidder({
             <button
               type="button"
               onClick={handleBid}
-              disabled={sending || ending || invalid}
+              disabled={sending || starting || ending || invalid}
               className="cursor-pointer flex-1 px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {sending && <Spinner />}
-              {ending ? "Encerrando..." : `Dar lance de ${amount}`}
+              {starting
+                ? `Começa em ${Math.ceil(startIn / 1000)}s`
+                : ending
+                  ? "Encerrando..."
+                  : `Dar lance de ${amount}`}
             </button>
           </div>
 

@@ -59,3 +59,22 @@ export default function AuctionTimer({ remaining, total, size = "lg" }: AuctionT
     </div>
   );
 }
+
+// contagem antes de os lances serem liberados
+export function AuctionStartCountdown({ remaining, size = "lg" }: Omit<AuctionTimerProps, "total">) {
+  const { box, text } = SIZES[size];
+  const seconds = Math.ceil(remaining / 1000);
+
+  return (
+    <div
+      className="relative shrink-0 rounded-full bg-amber-100 ring-4 ring-amber-300 flex items-center justify-center"
+      style={{ width: box, height: box }}
+      role="timer"
+      aria-label={`Leilão começa em ${seconds} segundos`}
+    >
+      <span key={seconds} className={`animate-winner-in font-extrabold tabular-nums text-amber-600 ${text}`}>
+        {seconds}
+      </span>
+    </div>
+  );
+}

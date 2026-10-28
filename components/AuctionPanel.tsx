@@ -6,7 +6,7 @@ import { useCountdown, type Auction, type AuctionResponse } from "@/hooks/useAuc
 import { useGlobal } from "@/context/GlobalContext";
 import { FiMaximize2, FiMinimize2, FiX } from "react-icons/fi";
 import { LuGavel } from "react-icons/lu";
-import AuctionTimer from "./AuctionTimer";
+import AuctionTimer, { AuctionStartCountdown } from "./AuctionTimer";
 import Avatar from "./Avatar";
 import Confetti from "./Confetti";
 import Spinner from "./Spinner";
@@ -30,6 +30,7 @@ export default function AuctionPanel({
   onDismiss,
 }: AuctionPanelProps) {
   const remaining = useCountdown(auction.endsAt, now);
+  const startIn = useCountdown(auction.startsAt, now);
   const [minimized, setMinimized] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
   const [cancelling, setCancelling] = useState(false);
@@ -59,6 +60,13 @@ export default function AuctionPanel({
   };
 
   const ending = remaining <= 0;
+  const starting = startIn > 0;
+  const timer = (size?: "sm" | "lg") =>
+    starting ? (
+      <AuctionStartCountdown remaining={startIn} size={size} />
+    ) : (
+      <AuctionTimer remaining={remaining} total={auction.durationSeconds} size={size} />
+    );
 
   if (minimized) {
     return (
@@ -68,7 +76,7 @@ export default function AuctionPanel({
         className="animate-pop-in cursor-pointer fixed bottom-24 right-4 z-[95] flex items-center gap-3 rounded-2xl bg-white pl-2 pr-4 py-2 shadow-xl ring-1 ring-black/5 text-black hover:shadow-2xl transition"
         aria-label="Expandir leilão"
       >
-        <AuctionTimer remaining={remaining} total={auction.durationSeconds} size="sm" />
+        {timer("sm")}
         <span className="text-left">
           <span className="block text-xs uppercase tracking-wide text-gray-400">
             {auction.leaderName ?? "Sem lances"}
@@ -110,7 +118,7 @@ export default function AuctionPanel({
         )}
 
         <div className="mt-6 flex flex-col md:flex-row items-center justify-center gap-6 md:gap-10">
-          <AuctionTimer remaining={remaining} total={auction.durationSeconds} />
+          {timer()}
 
           <div className="text-center md:text-left min-w-0">
             {auction.currentBid === null ? (
@@ -119,7 +127,9 @@ export default function AuctionPanel({
                 <p className="text-5xl md:text-6xl font-extrabold tabular-nums text-indigo-700">
                   {auction.startingBid}
                 </p>
-                <p className="mt-2 text-gray-500">Aguardando o primeiro lance...</p>
+                <p className="mt-2 text-gray-500">
+                  {starting ? "Prepare-se! O leilão vai começar." : "Aguardando o primeiro lance..."}
+                </p>
               </>
             ) : (
               <>
@@ -146,7 +156,9 @@ export default function AuctionPanel({
         </div>
 
         <p className="mt-4 text-center text-sm text-gray-500">
-          {ending
+          {starting
+            ? `Os lances abrem em ${Math.ceil(startIn / 1000)}s · ${auction.durationSeconds}s de leilão`
+            : ending
             ? "Encerrando..."
             : `Próximo lance mínimo: ${auction.minBid} · aumento mínimo de ${auction.minIncrement}`}
         </p>

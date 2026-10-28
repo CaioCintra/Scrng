@@ -18,8 +18,9 @@ import ConfirmModal from "@/components/ConfirmModal";
 import { Skeleton } from "@/components/Spinner";
 import AuctionPanel from "@/components/AuctionPanel";
 import AuctionStartModal from "@/components/AuctionStartModal";
+import AuctionHistoryModal from "@/components/AuctionHistoryModal";
 import { useAuction } from "@/hooks/useAuction";
-import { LuGavel } from "react-icons/lu";
+import { LuGavel, LuHistory } from "react-icons/lu";
 
 type Player = { id: string; name: string; points: number; avatar?: string };
 type RoomType = {
@@ -60,6 +61,7 @@ export default function RoomPage() {
 
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [auctionModalOpen, setAuctionModalOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   // resultado que o dono já fechou, para não reabrir no próximo polling
   const [dismissedAuction, setDismissedAuction] = useState<string | null>(null);
   const { auction, now, applyResponse } = useAuction(user ? id : undefined, {
@@ -246,6 +248,14 @@ export default function RoomPage() {
                     title={auctionRunning ? "Leilão em andamento" : "Abrir leilão"}
                   >
                     <LuGavel size={18} />
+                  </button>
+                  <button
+                    onClick={() => setHistoryOpen(true)}
+                    className="cursor-pointer p-2 rounded border bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
+                    aria-label="Histórico de leilões"
+                    title="Histórico de leilões"
+                  >
+                    <LuHistory size={18} />
                   </button>
                   <button
                     onClick={() => setSettingsOpen(true)}
@@ -522,6 +532,11 @@ export default function RoomPage() {
         onClose={() => setPlayerToRemove(null)}
       />
       <FloatingEmojis roomId={id!} enabled={!!room?.EmojisEnabled} />
+      <AuctionHistoryModal
+        open={historyOpen}
+        roomId={id!}
+        onClose={() => setHistoryOpen(false)}
+      />
       <AuctionStartModal
         open={auctionModalOpen}
         roomId={id!}

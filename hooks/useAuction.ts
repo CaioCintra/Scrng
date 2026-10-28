@@ -22,6 +22,7 @@ export type Auction = {
   bidResetSeconds: number;
   minBid: number;
   status: "RUNNING" | "FINISHED" | "CANCELLED";
+  startsAt: string;
   endsAt: string;
   currentBid: number | null;
   leaderId: string | null;
@@ -37,7 +38,8 @@ export type AuctionResponse = { serverNow: number; auction: Auction | null };
 
 // intervalo de busca enquanto há leilão rodando e quando não há (ms)
 const POLL_RUNNING = 1000;
-const POLL_IDLE = 3000;
+// menor que a contagem inicial, para os jogadores verem o leilão antes de começar
+const POLL_IDLE = 2000;
 
 type Options = {
   // mantém o resultado na tela mesmo depois que a API para de retorná-lo

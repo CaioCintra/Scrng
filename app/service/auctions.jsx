@@ -29,6 +29,9 @@ const post = (body) => ({
 export const getCurrentAuction = (roomId) =>
   request(`/rooms/${roomId}/auctions/current`);
 
+export const getAuctionHistory = (roomId, limit = 50) =>
+  request(`/rooms/${roomId}/auctions?limit=${limit}`);
+
 export const startAuction = (roomId, settings) =>
   request(`/rooms/${roomId}/auctions`, post(settings));
 
