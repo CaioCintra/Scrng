@@ -377,7 +377,7 @@ export default function RoomPage() {
                       return (
                         <div
                           key={p.id}
-                          className="animate-fade-in flex flex-col md:flex-row md:items-center gap-4 p-3 rounded-lg border bg-white relative transition hover:shadow-md hover:border-indigo-100"
+                          className="animate-fade-in flex flex-col md:grid md:grid-cols-[auto_minmax(0,1fr)_auto_minmax(0,1fr)_auto] md:items-center gap-4 p-3 rounded-lg border bg-white relative transition hover:shadow-md hover:border-indigo-100"
                         >
                           {p.avatar ? (
                             // eslint-disable-next-line @next/next/no-img-element
@@ -392,7 +392,7 @@ export default function RoomPage() {
                             </div>
                           )}
 
-                          <div className="flex-1 text-center md:text-left">
+                          <div className="min-w-0 text-center md:text-left">
                             <div className="text-lg font-medium text-gray-800 break-words">
                               {p.name}
                             </div>
@@ -402,7 +402,7 @@ export default function RoomPage() {
                           </div>
 
                           {/* Botões */}
-                          <div className="flex flex-wrap justify-center md:justify-end gap-2 items-center">
+                          <div className="flex flex-wrap justify-center gap-2 items-center">
                             <button
                               onClick={() =>
                                 applyPoints(points, p.id, () =>
@@ -445,7 +445,7 @@ export default function RoomPage() {
 
                           <div
                             key={p.points}
-                            className="animate-pop-in px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-lg font-semibold mx-auto md:mx-0 tabular-nums"
+                            className="animate-pop-in px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-lg font-semibold mx-auto md:mx-0 md:justify-self-end tabular-nums"
                           >
                             {p.points}
                           </div>
