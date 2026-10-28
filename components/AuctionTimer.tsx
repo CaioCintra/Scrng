@@ -1,7 +1,7 @@
-import { AUCTION_START_SECONDS } from "@/hooks/useAuction";
-
 type AuctionTimerProps = {
   remaining: number;
+  // duração inicial do leilão (s), usada como referência para o anel
+  total: number;
   size?: "sm" | "lg";
 };
 
@@ -11,11 +11,11 @@ const SIZES = {
 };
 
 // anel de contagem regressiva que muda de cor nos últimos segundos
-export default function AuctionTimer({ remaining, size = "lg" }: AuctionTimerProps) {
+export default function AuctionTimer({ remaining, total, size = "lg" }: AuctionTimerProps) {
   const { box, stroke, text } = SIZES[size];
   const radius = (box - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
-  const progress = Math.min(1, remaining / (AUCTION_START_SECONDS * 1000));
+  const progress = Math.min(1, remaining / (total * 1000));
   const seconds = Math.ceil(remaining / 1000);
 
   const color =

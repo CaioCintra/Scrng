@@ -147,7 +147,7 @@ export default function AuctionBidder({
       {auction.item && <p className="mt-1 text-lg font-bold break-words">{auction.item}</p>}
 
       <div className="mt-3 flex items-center gap-4">
-        <AuctionTimer remaining={remaining} size="sm" />
+        <AuctionTimer remaining={remaining} total={auction.durationSeconds} size="sm" />
         <div className="min-w-0">
           <p className="text-xs uppercase tracking-wide text-gray-400">
             {auction.currentBid === null ? "Lance inicial" : "Maior lance"}

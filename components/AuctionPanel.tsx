@@ -68,7 +68,7 @@ export default function AuctionPanel({
         className="animate-pop-in cursor-pointer fixed bottom-24 right-4 z-[95] flex items-center gap-3 rounded-2xl bg-white pl-2 pr-4 py-2 shadow-xl ring-1 ring-black/5 text-black hover:shadow-2xl transition"
         aria-label="Expandir leilão"
       >
-        <AuctionTimer remaining={remaining} size="sm" />
+        <AuctionTimer remaining={remaining} total={auction.durationSeconds} size="sm" />
         <span className="text-left">
           <span className="block text-xs uppercase tracking-wide text-gray-400">
             {auction.leaderName ?? "Sem lances"}
@@ -110,7 +110,7 @@ export default function AuctionPanel({
         )}
 
         <div className="mt-6 flex flex-col md:flex-row items-center justify-center gap-6 md:gap-10">
-          <AuctionTimer remaining={remaining} />
+          <AuctionTimer remaining={remaining} total={auction.durationSeconds} />
 
           <div className="text-center md:text-left min-w-0">
             {auction.currentBid === null ? (

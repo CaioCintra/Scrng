@@ -29,8 +29,8 @@ const post = (body) => ({
 export const getCurrentAuction = (roomId) =>
   request(`/rooms/${roomId}/auctions/current`);
 
-export const startAuction = (roomId, { item, startingBid, minIncrement }) =>
-  request(`/rooms/${roomId}/auctions`, post({ item, startingBid, minIncrement }));
+export const startAuction = (roomId, settings) =>
+  request(`/rooms/${roomId}/auctions`, post(settings));
 
 export const placeBid = (roomId, auctionId, playerId, amount) =>
   request(`/rooms/${roomId}/auctions/${auctionId}/bids`, post({ playerId, amount }));

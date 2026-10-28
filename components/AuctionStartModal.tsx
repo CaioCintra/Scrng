@@ -26,14 +26,17 @@ export default function AuctionStartModal({
   const [item, setItem] = useState("");
   const [startingBid, setStartingBid] = useState(10);
   const [minIncrement, setMinIncrement] = useState(1);
+  const [durationSeconds, setDurationSeconds] = useState(30);
+  const [bidResetSeconds, setBidResetSeconds] = useState(10);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleNumber =
-    (setter: (v: number) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    (setter: (v: number) => void, min = 1, max = 999999) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
       let value = Math.floor(Number(e.target.value));
-      if (isNaN(value) || value < 1) value = 1;
-      if (value > 999999) value = 999999;
+      if (isNaN(value) || value < min) value = min;
+      if (value > max) value = max;
       setter(value);
     };
 
@@ -46,6 +49,8 @@ export default function AuctionStartModal({
       item: item.trim() || undefined,
       startingBid,
       minIncrement,
+      durationSeconds,
+      bidResetSeconds,
     });
     setSaving(false);
     if (res?.error) {
@@ -107,10 +112,41 @@ export default function AuctionStartModal({
           </div>
         </div>
 
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label htmlFor="auction-duration" className="block text-sm font-medium text-gray-700 mb-1">
+              Duração (s)
+            </label>
+            <input
+              id="auction-duration"
+              type="number"
+              min={5}
+              max={3600}
+              value={durationSeconds}
+              onChange={handleNumber(setDurationSeconds, 5, 3600)}
+              className={`${INPUT_CLASS} text-center font-semibold`}
+            />
+          </div>
+          <div>
+            <label htmlFor="auction-reset" className="block text-sm font-medium text-gray-700 mb-1">
+              Após um lance (s)
+            </label>
+            <input
+              id="auction-reset"
+              type="number"
+              min={1}
+              max={3600}
+              value={bidResetSeconds}
+              onChange={handleNumber(setBidResetSeconds, 1, 3600)}
+              className={`${INPUT_CLASS} text-center font-semibold`}
+            />
+          </div>
+        </div>
+
         <p className="text-xs text-gray-500 rounded-lg bg-gray-50 border border-gray-100 p-3">
-          O leilão começa com 10 segundos. Sempre que alguém dá um lance com menos de 5
-          segundos restantes, o tempo volta para 5. Os pontos de quem for superado são
-          devolvidos na hora.
+          O leilão começa com {durationSeconds} segundos. Sempre que alguém dá um lance com
+          menos de {bidResetSeconds} segundos restantes, o tempo volta para {bidResetSeconds}.
+          Os pontos de quem for superado são devolvidos na hora.
         </p>
 
         <div className="flex gap-3 mt-2">

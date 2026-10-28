@@ -18,6 +18,8 @@ export type Auction = {
   item: string | null;
   startingBid: number;
   minIncrement: number;
+  durationSeconds: number;
+  bidResetSeconds: number;
   minBid: number;
   status: "RUNNING" | "FINISHED" | "CANCELLED";
   endsAt: string;
@@ -32,9 +34,6 @@ export type Auction = {
 };
 
 export type AuctionResponse = { serverNow: number; auction: Auction | null };
-
-// duração usada como referência para a barra/anel do timer (s)
-export const AUCTION_START_SECONDS = 10;
 
 // intervalo de busca enquanto há leilão rodando e quando não há (ms)
 const POLL_RUNNING = 1000;
