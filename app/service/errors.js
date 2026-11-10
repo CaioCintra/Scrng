@@ -23,6 +23,10 @@ const MESSAGES = {
   "This auction has not started yet": "Aguarde a contagem terminar para dar lances.",
   "You are already winning this auction": "Você já está vencendo este leilão.",
   "Bid is too low": "Alguém deu um lance maior. Tente um valor mais alto.",
+  "There is already a poll in progress in this room":
+    "Já existe um bolão em andamento nesta sala.",
+  "This poll has already ended": "Este bolão já foi encerrado.",
+  "Poll not found": "Bolão não encontrado.",
   "Not enough points for this bid": "Você não tem pontos suficientes para esse lance.",
 };
 

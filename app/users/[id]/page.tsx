@@ -7,6 +7,7 @@ import { addPoints } from "../../service/players";
 import EditProfileModal from "@/components/EditProfileModal";
 import EmojiSender from "@/components/EmojiSender";
 import AuctionBidder from "@/components/AuctionBidder";
+import PollAnswerer from "@/components/PollAnswerer";
 import { Skeleton } from "@/components/Spinner";
 import { useGlobal } from "@/context/GlobalContext";
 import { FiEdit2 } from "react-icons/fi";
@@ -175,6 +176,8 @@ export default function UserPage() {
           </div>
         ) : player ? (
           <div className="animate-fade-in flex flex-col items-center text-center gap-4">
+            {player.roomId && <PollAnswerer roomId={player.roomId} playerId={player.id} />}
+
             {/* Leilão: só aparece enquanto houver um em andamento (ou o resultado recente) */}
             {player.roomId && (
               <AuctionBidder

@@ -19,8 +19,11 @@ import { Skeleton } from "@/components/Spinner";
 import AuctionPanel from "@/components/AuctionPanel";
 import AuctionStartModal from "@/components/AuctionStartModal";
 import AuctionHistoryModal from "@/components/AuctionHistoryModal";
+import GamesMenuModal from "@/components/GamesMenuModal";
+import PollPanel from "@/components/PollPanel";
 import { useAuction } from "@/hooks/useAuction";
-import { LuGavel, LuHistory } from "react-icons/lu";
+import { usePoll } from "@/hooks/usePoll";
+import { LuGamepad2 } from "react-icons/lu";
 
 type Player = { id: string; name: string; points: number; avatar?: string };
 type RoomType = {
@@ -62,12 +65,15 @@ export default function RoomPage() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [auctionModalOpen, setAuctionModalOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [gamesOpen, setGamesOpen] = useState(false);
+  const [pollOpen, setPollOpen] = useState(false);
   // resultado que o dono já fechou, para não reabrir no próximo polling
   const [dismissedAuction, setDismissedAuction] = useState<string | null>(null);
   const { auction, now, applyResponse } = useAuction(user ? id : undefined, {
     keepResult: true,
   });
   const auctionRunning = auction?.status === "RUNNING";
+  const { poll, applyResponse: applyPollResponse } = usePoll(user ? id : undefined);
 
   // busca silenciosa, sem mexer no estado de loading (usada no polling)
   const refreshRoom = useCallback(async () => {
@@ -241,21 +247,12 @@ export default function RoomPage() {
                 </div>
                 <div className="flex gap-3 justify-center md:justify-end">
                   <button
-                    onClick={() => setAuctionModalOpen(true)}
-                    disabled={auctionRunning}
-                    className="cursor-pointer p-2 rounded border bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                    aria-label="Abrir leilão"
-                    title={auctionRunning ? "Leilão em andamento" : "Abrir leilão"}
+                    onClick={() => setGamesOpen(true)}
+                    className="cursor-pointer p-2 rounded border bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-200 transition"
+                    aria-label="Jogos"
+                    title="Jogos"
                   >
-                    <LuGavel size={18} />
-                  </button>
-                  <button
-                    onClick={() => setHistoryOpen(true)}
-                    className="cursor-pointer p-2 rounded border bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
-                    aria-label="Histórico de leilões"
-                    title="Histórico de leilões"
-                  >
-                    <LuHistory size={18} />
+                    <LuGamepad2 size={18} />
                   </button>
                   <button
                     onClick={() => setSettingsOpen(true)}
@@ -532,6 +529,26 @@ export default function RoomPage() {
         onClose={() => setPlayerToRemove(null)}
       />
       <FloatingEmojis roomId={id!} enabled={!!room?.EmojisEnabled} />
+      <GamesMenuModal
+        open={gamesOpen}
+        onClose={() => setGamesOpen(false)}
+        auctionRunning={auctionRunning}
+        pollStatus={poll?.status === "DONE" ? undefined : poll?.status}
+        onAuction={() => setAuctionModalOpen(true)}
+        onAuctionHistory={() => setHistoryOpen(true)}
+        onPoll={() => setPollOpen(true)}
+      />
+      <PollPanel
+        open={pollOpen}
+        roomId={id!}
+        poll={poll}
+        players={room?.players ?? []}
+        onClose={() => setPollOpen(false)}
+        onChanged={applyPollResponse}
+        onAddPoints={(playerId, delta) =>
+          applyPoints(delta, playerId, () => addPoints(id, playerId, delta))
+        }
+      />
       <AuctionHistoryModal
         open={historyOpen}
         roomId={id!}
