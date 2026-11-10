@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { IoMdAdd, IoMdRemove } from "react-icons/io";
-import { LuEye, LuTrophy } from "react-icons/lu";
+import { LuCircleCheck, LuClock, LuEye, LuTrophy } from "react-icons/lu";
 import { closePoll, finishPoll, startPoll } from "@/app/service/polls";
 import type { Poll, PollResponse } from "@/hooks/usePoll";
 import FormError from "./FormError";
@@ -113,25 +113,35 @@ export default function PollPanel({
               key={poll.answerCount}
               className="animate-pop-in text-4xl font-extrabold tabular-nums"
             >
-              {poll.answerCount}/{players.length}
+              {poll.readyPlayerIds.length}/{players.length}
             </p>
-            <p className="text-sm">jogadores já responderam</p>
+            <p className="text-sm">jogadores prontos</p>
           </div>
           {players.length > 0 && (
-            <ul className="flex flex-wrap gap-2 justify-center">
+            <ul className="grid gap-2">
               {players.map((p) => {
-                const answered = poll.answeredPlayerIds.includes(p.id);
+                const ready = poll.readyPlayerIds.includes(p.id);
                 return (
                   <li
                     key={p.id}
-                    className={`text-xs px-2.5 py-1 rounded-full border ${
-                      answered
-                        ? "bg-green-50 border-green-200 text-green-700"
-                        : "bg-gray-50 border-gray-200 text-gray-500"
+                    className={`flex items-center justify-between gap-3 px-3 py-2 rounded-lg border transition ${
+                      ready
+                        ? "bg-green-50 border-green-200 text-green-800"
+                        : "bg-gray-50 border-gray-200 text-gray-600"
                     }`}
                   >
-                    {answered ? "✓ " : ""}
-                    {p.name}
+                    <span className="min-w-0 break-words font-medium">{p.name}</span>
+                    <span
+                      className="flex items-center gap-1.5 text-xs shrink-0"
+                      title={ready ? "Pronto" : "Ainda escrevendo"}
+                    >
+                      {ready ? (
+                        <LuCircleCheck size={20} className="text-green-600" />
+                      ) : (
+                        <LuClock size={20} className="text-gray-400" />
+                      )}
+                      {ready ? "Pronto" : "Escrevendo"}
+                    </span>
                   </li>
                 );
               })}

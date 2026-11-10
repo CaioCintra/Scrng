@@ -20,7 +20,10 @@ export type Poll = {
   closedAt: string | null;
   answerCount: number;
   answeredPlayerIds: string[];
+  // jogadores que marcaram que terminaram de escrever
+  readyPlayerIds: string[];
   myAnswer: string | null;
+  myReady: boolean;
   // só vem preenchido depois que o bolão é encerrado
   answers: PollAnswerItem[];
 };

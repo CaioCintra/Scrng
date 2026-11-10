@@ -54,14 +54,14 @@ export default function PollAnswerer({ roomId, playerId }: PollAnswererProps) {
     );
   }
 
-  const saved = poll.myAnswer !== null && poll.myAnswer === text.trim();
+  const ready = poll.myReady;
 
-  const handleSend = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // pronto = resposta salva e travada; "Editar" volta a liberar o campo
+  const send = async (markReady: boolean) => {
     if (sending || !text.trim()) return;
     setSending(true);
     setError(null);
-    const res = await answerPoll(roomId, poll.id, playerId, text.trim());
+    const res = await answerPoll(roomId, poll.id, playerId, text.trim(), markReady);
     setSending(false);
     if (res?.error) {
       setError(res.error);
@@ -78,7 +78,10 @@ export default function PollAnswerer({ roomId, playerId }: PollAnswererProps) {
 
   return (
     <form
-      onSubmit={handleSend}
+      onSubmit={(e) => {
+        e.preventDefault();
+        send(!ready);
+      }}
       className="animate-pop-in w-full rounded-2xl border-2 border-indigo-300 bg-linear-to-b from-indigo-50 to-white p-4 text-left"
     >
       {header}
@@ -91,9 +94,12 @@ export default function PollAnswerer({ roomId, playerId }: PollAnswererProps) {
         onChange={(e) => setText(e.target.value)}
         maxLength={300}
         rows={3}
+        readOnly={ready}
         placeholder="Digite sua resposta..."
         aria-label="Sua resposta"
-        className="mt-3 w-full resize-none px-3 py-2 rounded-lg border border-gray-300 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+        className={`mt-3 w-full resize-none px-3 py-2 rounded-lg border outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 ${
+          ready ? "border-green-300 bg-green-50 text-gray-700" : "border-gray-300"
+        }`}
       />
 
       <div className="mt-3">
@@ -102,18 +108,20 @@ export default function PollAnswerer({ roomId, playerId }: PollAnswererProps) {
 
       <button
         type="submit"
-        disabled={sending || !text.trim() || saved}
-        className="cursor-pointer mt-3 w-full px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        disabled={sending || !text.trim()}
+        className={`cursor-pointer mt-3 w-full px-4 py-2 rounded-lg font-semibold active:scale-95 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
+          ready
+            ? "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+            : "bg-indigo-600 text-white hover:bg-indigo-700"
+        }`}
       >
         {sending && <Spinner />}
-        {saved
-          ? "Resposta enviada ✓"
-          : poll.myAnswer !== null
-            ? "Atualizar resposta"
-            : "Enviar resposta"}
+        {ready ? "Editar resposta" : "Estou pronto ✓"}
       </button>
       <p className="mt-1.5 text-xs text-gray-500">
-        As respostas só aparecem quando o bolão for encerrado. Você pode mudar a sua até lá.
+        {ready
+          ? "Você está pronto! Aguarde o bolão ser encerrado ou toque em editar para mudar."
+          : "Toque em “Estou pronto” quando terminar. As respostas só aparecem quando o bolão for encerrado."}
       </p>
     </form>
   );

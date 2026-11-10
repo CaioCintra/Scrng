@@ -28,8 +28,9 @@ export const getCurrentPoll = (roomId, playerId) =>
 export const startPoll = (roomId, question) =>
   request(`/rooms/${roomId}/polls`, post({ question }));
 
-export const answerPoll = (roomId, pollId, playerId, text) =>
-  request(`/rooms/${roomId}/polls/${pollId}/answers`, post({ playerId, text }));
+// ready = true marca que o jogador terminou de escrever
+export const answerPoll = (roomId, pollId, playerId, text, ready = false) =>
+  request(`/rooms/${roomId}/polls/${pollId}/answers`, post({ playerId, text, ready }));
 
 export const closePoll = (roomId, pollId) =>
   request(`/rooms/${roomId}/polls/${pollId}/close`, post());
