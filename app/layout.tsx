@@ -38,14 +38,14 @@ export default async function RootLayout({
   }
   return (
     <html lang="pt-BR">
-      <ClientProviders initialUser={initialUser}>
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        >
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        <ClientProviders initialUser={initialUser}>
           <Header />
           {children}
-        </body>
-      </ClientProviders>
+        </ClientProviders>
+      </body>
     </html>
   );
 }
