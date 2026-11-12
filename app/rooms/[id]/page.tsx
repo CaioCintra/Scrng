@@ -21,6 +21,7 @@ import AuctionStartModal from "@/components/AuctionStartModal";
 import AuctionHistoryModal from "@/components/AuctionHistoryModal";
 import GamesMenuModal from "@/components/GamesMenuModal";
 import PollPanel from "@/components/PollPanel";
+import RaffleModal from "@/components/RaffleModal";
 import { useAuction } from "@/hooks/useAuction";
 import { usePoll } from "@/hooks/usePoll";
 import { LuGamepad2 } from "react-icons/lu";
@@ -67,6 +68,7 @@ export default function RoomPage() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [gamesOpen, setGamesOpen] = useState(false);
   const [pollOpen, setPollOpen] = useState(false);
+  const [raffleOpen, setRaffleOpen] = useState(false);
   // resultado que o dono já fechou, para não reabrir no próximo polling
   const [dismissedAuction, setDismissedAuction] = useState<string | null>(null);
   const { auction, now, applyResponse } = useAuction(user ? id : undefined, {
@@ -537,6 +539,12 @@ export default function RoomPage() {
         onAuction={() => setAuctionModalOpen(true)}
         onAuctionHistory={() => setHistoryOpen(true)}
         onPoll={() => setPollOpen(true)}
+        onRaffle={() => setRaffleOpen(true)}
+      />
+      <RaffleModal
+        open={raffleOpen}
+        players={room?.players ?? []}
+        onClose={() => setRaffleOpen(false)}
       />
       <PollPanel
         open={pollOpen}

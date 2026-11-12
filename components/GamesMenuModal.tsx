@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { LuGavel, LuHistory, LuTrophy } from "react-icons/lu";
+import { LuDices, LuGavel, LuHistory, LuTrophy } from "react-icons/lu";
 import Modal from "./Modal";
 
 type GamesMenuModalProps = {
@@ -12,6 +12,7 @@ type GamesMenuModalProps = {
   onAuction: () => void;
   onAuctionHistory: () => void;
   onPoll: () => void;
+  onRaffle: () => void;
 };
 
 type GameCardProps = {
@@ -58,20 +59,19 @@ export default function GamesMenuModal({
   onAuction,
   onAuctionHistory,
   onPoll,
+  onRaffle,
 }: GamesMenuModalProps) {
   return (
     <Modal open={open} onClose={onClose} title="Jogos">
       <div className="flex flex-col gap-3">
         <GameCard
-          icon={<LuGavel size={22} />}
-          title="Leilão"
-          description="Jogadores disputam um item dando lances com seus pontos."
-          badge={auctionRunning ? "Em andamento" : undefined}
-          tone="bg-amber-100 text-amber-800"
-          disabled={auctionRunning}
+          icon={<LuDices size={22} />}
+          title="Sorteio"
+          description="Escolha os participantes e gire a roleta para achar o vencedor."
+          tone="bg-rose-100 text-rose-800"
           onClick={() => {
             onClose();
-            onAuction();
+            onRaffle();
           }}
         />
         <GameCard
@@ -89,6 +89,18 @@ export default function GamesMenuModal({
           onClick={() => {
             onClose();
             onPoll();
+          }}
+        />
+        <GameCard
+          icon={<LuGavel size={22} />}
+          title="Leilão"
+          description="Jogadores disputam um item dando lances com seus pontos."
+          badge={auctionRunning ? "Em andamento" : undefined}
+          tone="bg-amber-100 text-amber-800"
+          disabled={auctionRunning}
+          onClick={() => {
+            onClose();
+            onAuction();
           }}
         />
         <button
