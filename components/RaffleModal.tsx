@@ -1,10 +1,31 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { LuTrophy } from "react-icons/lu";
+import { Poppins } from "next/font/google";
+import { LuCheck, LuTrophy } from "react-icons/lu";
 import Modal from "./Modal";
 
-type RafflePlayer = { id: string; name: string };
+const font = Poppins({ subsets: ["latin"], weight: ["400", "500", "600", "700"] });
+
+type RafflePlayer = { id: string; name: string; avatar?: string };
+
+function Avatar({ player, size }: { player: RafflePlayer; size: number }) {
+  const style = { width: size, height: size };
+  if (player.avatar) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={player.avatar} alt="" style={style} className="rounded-full bg-gray-100 border shrink-0" />
+    );
+  }
+  return (
+    <span
+      style={{ ...style, fontSize: size / 2.5 }}
+      className="rounded-full bg-gray-200 text-gray-700 font-semibold flex items-center justify-center shrink-0"
+    >
+      {player.name.trim().charAt(0).toUpperCase()}
+    </span>
+  );
+}
 
 type RaffleModalProps = {
   open: boolean;
@@ -42,9 +63,10 @@ function Wheel({ names, rotation, spinning }: { names: string[]; rotation: numbe
           borderTop: "20px solid #1f2937",
         }}
       />
+      <div className="overflow-hidden rounded-full">
       <svg
         viewBox={`0 0 ${SIZE} ${SIZE}`}
-        className="w-full h-auto"
+        className="w-full h-auto block"
         style={{
           transform: `rotate(${rotation}deg)`,
           transition: spinning ? `transform ${SPIN_MS}ms cubic-bezier(0.12, 0.6, 0.1, 1)` : "none",
@@ -90,6 +112,7 @@ function Wheel({ names, rotation, spinning }: { names: string[]; rotation: numbe
         })}
         <circle cx={C} cy={C} r={14} fill="white" stroke="#1f2937" strokeWidth={3} />
       </svg>
+      </div>
     </div>
   );
 }
@@ -158,7 +181,8 @@ export default function RaffleModal({ open, players, onClose }: RaffleModalProps
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="Sorteio" locked={spinning}>
+    <Modal open={open} onClose={onClose} title={<span className={font.className}>Sorteio</span>} locked={spinning} className="max-w-md">
+      <div className={font.className}>
       {stage === "select" ? (
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between text-sm">
@@ -174,20 +198,32 @@ export default function RaffleModal({ open, players, onClose }: RaffleModalProps
             </button>
           </div>
 
-          <ul className="flex flex-col gap-1 max-h-72 overflow-y-auto">
-            {players.map((p) => (
-              <li key={p.id}>
-                <label className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={selected.has(p.id)}
-                    onChange={() => toggle(p.id)}
-                    className="h-4 w-4 accent-indigo-600"
-                  />
-                  <span className="truncate">{p.name}</span>
-                </label>
-              </li>
-            ))}
+          <ul className="grid grid-cols-2 gap-2 max-h-80 overflow-y-auto p-1">
+            {players.map((p) => {
+              const on = selected.has(p.id);
+              return (
+                <li key={p.id}>
+                  <button
+                    type="button"
+                    onClick={() => toggle(p.id)}
+                    aria-pressed={on}
+                    className={`cursor-pointer relative w-full flex flex-col items-center gap-2 px-2 py-3 rounded-xl border-2 transition ${
+                      on
+                        ? "border-indigo-500 bg-indigo-50 shadow-sm"
+                        : "border-gray-200 bg-white opacity-60 hover:opacity-100 hover:border-gray-300"
+                    }`}
+                  >
+                    <Avatar player={p} size={56} />
+                    <span className="w-full truncate text-sm font-medium text-gray-800 text-center">{p.name}</span>
+                    {on && (
+                      <span className="absolute top-1.5 right-1.5 h-5 w-5 rounded-full bg-indigo-600 text-white flex items-center justify-center">
+                        <LuCheck size={13} />
+                      </span>
+                    )}
+                  </button>
+                </li>
+              );
+            })}
           </ul>
 
           {players.length < 2 && (
@@ -216,12 +252,13 @@ export default function RaffleModal({ open, players, onClose }: RaffleModalProps
         <div className="flex flex-col gap-4">
           <Wheel names={wheelPlayers.map((p) => p.name)} rotation={rotation} spinning={spinning} />
 
-          <div className="min-h-14 text-center">
+          <div className="min-h-36 flex items-center justify-center text-center">
             {winner ? (
               <div className="animate-pop-in flex flex-col items-center gap-1">
                 <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-amber-600">
                   <LuTrophy /> Vencedor
                 </span>
+                <Avatar player={winner} size={72} />
                 <span className="text-2xl font-bold text-gray-800 break-words">{winner.name}</span>
               </div>
             ) : (
@@ -249,6 +286,7 @@ export default function RaffleModal({ open, players, onClose }: RaffleModalProps
           </div>
         </div>
       )}
+      </div>
     </Modal>
   );
 }

@@ -543,7 +543,11 @@ export default function RoomPage() {
       />
       <RaffleModal
         open={raffleOpen}
-        players={room?.players ?? []}
+        players={(room?.players ?? []).map((p) => ({
+          id: p.id,
+          name: p.name,
+          avatar: p.avatar ? avatarUrl(p.avatar) : undefined,
+        }))}
         onClose={() => setRaffleOpen(false)}
       />
       <PollPanel
